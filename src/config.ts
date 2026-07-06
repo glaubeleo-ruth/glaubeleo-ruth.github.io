@@ -52,8 +52,6 @@ export const siteConfig: SiteConfig = {
     "I work on representation learning and explainability for label-scarce, high-stakes data — applying self-supervised methods to medical image segmentation (TB chest X-ray, FUSeg) at IMSI Lab (SNU), with an Industrial Engineering background in optimization and data-driven decision systems (fleet routing, simulation, time-series forecasting). I'm drawn to problems where limited labels and interpretability both matter — the throughline connecting my medical imaging and operations research work.",
   researchInterests: [
     "Self-supervised representation learning",
-    "Explainable anomaly detection",
-    "Multi-task learning under label scarcity",
     "Time-series & multimodal biomedical signals",
   ],
   skills: [
