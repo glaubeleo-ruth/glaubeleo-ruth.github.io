@@ -1,0 +1,17 @@
+{siteConfig.researchInterests && (
+  <div class="mt-6">
+    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      Research Interests
+    </h3>
+    <div class="flex flex-wrap gap-2">
+      {siteConfig.researchInterests.map((interest) => (
+        <span
+          class="px-3 py-1 rounded-full text-sm border"
+          style={`border-color: ${siteConfig.accentColor}; color: ${siteConfig.accentColor}`}
+        >
+          {interest}
+        </span>
+      ))}
+    </div>
+  </div>
+)}
