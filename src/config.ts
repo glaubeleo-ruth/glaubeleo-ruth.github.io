@@ -79,7 +79,7 @@ export const siteConfig = {
       ],
     },
   ],
-  education: [
+education: [
     {
       school: "Soongsil University",
       degree: "B.Eng. Industrial Engineering",
