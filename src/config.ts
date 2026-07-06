@@ -82,7 +82,8 @@ export const siteConfig = {
   education: [
     {
       school: "Soongsil University",
-      degree: "B.Eng. Industrial Engineering · Double Major in AI-Convergence",
+      degree: "B.Eng. Industrial Engineering",
+      minor: "Double Major in AI-Convergence",
       dateRange: "Mar 2022 - Aug 2027 (Expected)",
       achievements: [
         "GPA 3.52 / 4.50",
