@@ -24,8 +24,12 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
                     <div>
                       <h3 class="text-lg sm:text-xl font-semibold text-gray-900">
                         {edu.degree}
-                        {edu.minor && <span class="font-normal text-gray-600"> · {edu.minor}</span>}
                       </h3>
+                      {edu.minor && (
+                        <p class="text-sm sm:text-base text-gray-500">
+                          {edu.minor}
+                        </p>
+                      )}
                       <p
                         class="text-base sm:text-lg"
                         style={`color: ${siteConfig.accentColor}`}
