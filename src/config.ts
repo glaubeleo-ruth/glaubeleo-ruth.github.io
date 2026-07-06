@@ -1,4 +1,44 @@
-export const siteConfig = {
+interface Project {
+  name: string;
+  description: string;
+  link?: string;
+  skills: string[];
+}
+
+interface Experience {
+  company: string;
+  title: string;
+  dateRange: string;
+  bullets: string[];
+}
+
+interface Education {
+  school: string;
+  degree: string;
+  minor?: string;
+  dateRange: string;
+  achievements: string[];
+}
+
+interface SiteConfig {
+  name: string;
+  title: string;
+  description: string;
+  accentColor: string;
+  social: {
+    email: string;
+    linkedin: string;
+    github: string;
+  };
+  aboutMe: string;
+  researchInterests: string[];
+  skills: string[];
+  projects: Project[];
+  experience: Experience[];
+  education: Education[];
+}
+
+export const siteConfig: SiteConfig = {
   name: "Jungwoo Suh",
   title: "Undergraduate Researcher",
   description: "Portfolio website of Jungwoo Suh",
