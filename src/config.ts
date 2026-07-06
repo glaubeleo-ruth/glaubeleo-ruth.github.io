@@ -50,23 +50,15 @@ export const siteConfig = {
   ],
   experience: [
     {
+    {
       company: "IMSI Lab, Seoul National University",
       title: "Undergraduate Researcher",
       dateRange: "Jun 2026 - Present",
       bullets: [
-        "Conducting medical AI research on Chest X-ray classification as part of the CineFlow team",
-        "Working toward a co-authored publication targeting December 2026",
+        "Contributing to CineFlow team research on chest X-ray classification, in progress toward journal submission (IEEE Access / ESWA)",
+        "Supporting related work on skin condition analysis targeting ICCE-ASIA 2026 conference submission",
       ],
-    },
-    {
-      company: "IDEA Lab, Soongsil University",
-      title: "Undergraduate Researcher (Incoming)",
-      dateRange: "Sep 2026 - Present",
-      bullets: [
-        "Research in industrial time-series analysis and NLP applications under Prof. Heejeong Choi",
-        "Targeting a first-author publication by mid-2027",
-      ],
-    },
+    }    {
     {
       company: "Illinois Institute of Technology",
       title: "Visiting Researcher — Optimization",
