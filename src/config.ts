@@ -9,12 +9,15 @@ export const siteConfig = {
     github: "https://github.com/glaubeleo-ruth",
   },
   aboutMe:
-    "I build systems where mathematical optimization and machine learning intersect to solve real operational problems. My background is in Industrial Engineering with a focus on Operations Research — spanning fleet routing, energy prediction, and simulation modeling. I am currently expanding into AI applications through research projects.",
+    "I work at the intersection of medical imaging and optimization — currently researching chest X-ray segmentation for TB detection at IMSI Lab (SNU), alongside an Industrial Engineering background in fleet routing, energy prediction, and simulation modeling. I am interested in self-supervised representation learning and explainable AI for label-scarce clinical data.",
   skills: [
     "Python",
+    "PyTorch",
+    "U-Net",
+    "Medical Imaging",
+    "Image Segmentation",
     "XGBoost",
     "Scikit-learn",
-    "PyTorch",
     "Gurobi",
     "MILP",
     "PuLP",
@@ -26,6 +29,12 @@ export const siteConfig = {
     "ROS2",
   ],
   projects: [
+    {
+      name: "TB Chest X-ray Segmentation (Ongoing)",
+      description:
+        "Undergraduate research project at IMSI Lab (SNU) applying U-Net and ResNet architectures to tuberculosis chest X-ray segmentation, addressing label-scarce clinical imaging conditions. Research in progress.",
+      skills: ["PyTorch", "U-Net", "ResNet", "Medical Imaging"],
+    },
     {
       name: "ML-MILP EV Fleet Optimization",
       description:
@@ -79,7 +88,7 @@ export const siteConfig = {
       ],
     },
   ],
-education: [
+  education: [
     {
       school: "Soongsil University",
       degree: "B.Eng. Industrial Engineering",
