@@ -44,7 +44,7 @@ export const siteConfig = {
       name: "Distribution Center Simulation",
       description:
         "Led a 3-member team to model and improve distribution center operations using discrete-event simulation. Identified AGV routing as the primary throughput bottleneck via data-driven analysis and proposed optimized routing and buffer strategies to improve operational efficiency.",
-      link: "",
+      link: "https://github.com/glaubeleo-ruth/distribution-center-agv-simulation",
       skills: ["Arena", "Simulation Modeling"],
     },
   ],
