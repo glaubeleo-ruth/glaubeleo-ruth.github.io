@@ -48,8 +48,7 @@ export const siteConfig = {
       skills: ["Arena", "Simulation Modeling"],
     },
   ],
-  experience: [
-    {
+experience: [
     {
       company: "IMSI Lab, Seoul National University",
       title: "Undergraduate Researcher",
@@ -58,7 +57,7 @@ export const siteConfig = {
         "Contributing to CineFlow team research on chest X-ray classification, in progress toward journal submission (IEEE Access / ESWA)",
         "Supporting related work on skin condition analysis targeting ICCE-ASIA 2026 conference submission",
       ],
-    }    {
+    },
     {
       company: "Illinois Institute of Technology",
       title: "Visiting Researcher — Optimization",
