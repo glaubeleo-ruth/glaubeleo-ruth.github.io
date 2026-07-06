@@ -9,7 +9,13 @@ export const siteConfig = {
     github: "https://github.com/glaubeleo-ruth",
   },
   aboutMe:
-    "I work at the intersection of medical imaging and optimization — currently researching chest X-ray segmentation for TB detection at IMSI Lab (SNU), alongside an Industrial Engineering background in fleet routing, energy prediction, and simulation modeling. I am interested in self-supervised representation learning and explainable AI for label-scarce clinical data.",
+    "I work on representation learning and explainability for label-scarce, high-stakes data — applying self-supervised methods to medical image segmentation (TB chest X-ray, FUSeg) at IMSI Lab (SNU), with an Industrial Engineering background in optimization and data-driven decision systems (fleet routing, simulation, time-series forecasting). I'm drawn to problems where limited labels and interpretability both matter — the throughline connecting my medical imaging and operations research work.",
+  researchInterests: [
+    "Self-supervised representation learning",
+    "Explainable anomaly detection",
+    "Multi-task learning under label scarcity",
+    "Time-series & multimodal biomedical signals",
+  ],
   skills: [
     "Python",
     "PyTorch",
@@ -30,15 +36,15 @@ export const siteConfig = {
   ],
   projects: [
     {
-      name: "TB Chest X-ray Segmentation (Ongoing)",
+      name: "Medical Image Segmentation (Ongoing)",
       description:
-        "Undergraduate research project at IMSI Lab (SNU) applying U-Net and ResNet architectures to tuberculosis chest X-ray segmentation, addressing label-scarce clinical imaging conditions. Research in progress.",
+        "Undergraduate research at IMSI Lab (SNU) applying U-Net and ResNet architectures to segmentation tasks across TB chest X-ray and FUSeg foot ulcer datasets, addressing label-scarce clinical imaging conditions. Research in progress.",
       skills: ["PyTorch", "U-Net", "ResNet", "Medical Imaging"],
     },
     {
       name: "ML-MILP EV Fleet Optimization",
       description:
-        "Integrated XGBoost energy prediction and MILP routing optimization for HVAC-aware electric vehicle fleet operations. Improved service level by 12%, reduced non-revenue operations by 37%, and achieved R²=0.94 on energy estimation across 135 evaluated scenarios.",
+        "Integrated XGBoost energy prediction and MILP routing optimization for HVAC-aware electric vehicle fleet operations. Improved service level by 12%, reduced non-revenue operations by 37%, and achieved R²=0.94 on energy estimation across 135 evaluated scenarios. Involves sequential, time-dependent operational data relevant to time-series representation learning.",
       link: "https://github.com/glaubeleo-ruth/ml-milp-ev-fleet-optimization",
       skills: ["Python", "Gurobi", "XGBoost", "MILP"],
     },
