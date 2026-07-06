@@ -48,7 +48,7 @@ export const siteConfig = {
       skills: ["Arena", "Simulation Modeling"],
     },
   ],
-experience: [
+  experience: [
     {
       company: "IMSI Lab, Seoul National University",
       title: "Undergraduate Researcher",
