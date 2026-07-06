@@ -2,7 +2,6 @@
 import { siteConfig } from "../config";
 const hasEducation = siteConfig.education && siteConfig.education.length > 0;
 ---
-
 {
   hasEducation && (
     <section id="education" class="p-8 sm:p-12 md:p-16 lg:p-24">
@@ -17,7 +16,6 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
               style={`background-color: ${siteConfig.accentColor}`}
             />
           </div>
-
           <div class="lg:col-span-8">
             <div class="space-y-8">
               {siteConfig.education.map((edu) => (
@@ -26,6 +24,7 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
                     <div>
                       <h3 class="text-lg sm:text-xl font-semibold text-gray-900">
                         {edu.degree}
+                        {edu.minor && <span class="font-normal text-gray-600"> · {edu.minor}</span>}
                       </h3>
                       <p
                         class="text-base sm:text-lg"
@@ -38,7 +37,6 @@ const hasEducation = siteConfig.education && siteConfig.education.length > 0;
                       {edu.dateRange}
                     </span>
                   </div>
-
                   <ul class="space-y-2">
                     {edu.achievements.map((achievement) => (
                       <li class="flex items-start">
