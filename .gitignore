@@ -22,3 +22,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# handoff / working drafts — not for publication
+HANDOFF.md
+portfolio-content.md
+github-profile-README.md
+repo-readmes.md
