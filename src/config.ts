@@ -1,4 +1,44 @@
-export const siteConfig = {
+interface Project {
+  name: string;
+  description: string;
+  link?: string;
+  skills: string[];
+}
+
+interface Experience {
+  company: string;
+  title: string;
+  dateRange: string;
+  bullets: string[];
+}
+
+interface Education {
+  school: string;
+  degree: string;
+  minor?: string;
+  dateRange: string;
+  achievements: string[];
+}
+
+interface SiteConfig {
+  name: string;
+  title: string;
+  description: string;
+  accentColor: string;
+  social: {
+    email: string;
+    linkedin: string;
+    github: string;
+  };
+  aboutMe: string;
+  researchInterests: string[];
+  skills: string[];
+  projects: Project[];
+  experience: Experience[];
+  education: Education[];
+}
+
+export const siteConfig: SiteConfig = {
   name: "Jungwoo Suh",
   title: "Undergraduate Researcher",
   description: "Portfolio website of Jungwoo Suh",
@@ -9,12 +49,16 @@ export const siteConfig = {
     github: "https://github.com/glaubeleo-ruth",
   },
   aboutMe:
-    "I build systems where mathematical optimization and machine learning intersect to solve real operational problems. My background is in Industrial Engineering with a focus on Operations Research — spanning fleet routing, energy prediction, and simulation modeling. I am currently expanding into AI applications through research projects.",
+    "I work at the intersection of mathematical optimization and machine learning, building decision systems that hold up under uncertainty. My Industrial Engineering background runs through fleet routing, discrete-event simulation, and demand forecasting — problems where a model is only useful if it survives contact with operational constraints. I'm drawn to work that couples a learned predictor to a solver, so that a forecast becomes a decision rather than a number.",
+  researchInterests: [
+    "Machine learning for combinatorial optimization",
+    "Decision-making under uncertainty",
+  ],
   skills: [
     "Python",
+    "PyTorch",
     "XGBoost",
     "Scikit-learn",
-    "PyTorch",
     "Gurobi",
     "MILP",
     "PuLP",
@@ -79,7 +123,8 @@ export const siteConfig = {
   education: [
     {
       school: "Soongsil University",
-      degree: "B.Eng. Industrial Engineering · Double Major in AI-Convergence",
+      degree: "B.Eng. Industrial Engineering",
+      minor: "Double Major in AI-Convergence",
       dateRange: "Mar 2022 - Aug 2027 (Expected)",
       achievements: [
         "Relevant coursework: Operations Research, Machine Learning, Data Structures, Algorithms, Computer Architecture, Operating Systems",
