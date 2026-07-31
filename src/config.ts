@@ -50,15 +50,11 @@ export const siteConfig = {
   ],
   experience: [
     {
-    {
       company: "IMSI Lab, Seoul National University",
       title: "Undergraduate Researcher",
       dateRange: "Jun 2026 - Present",
-      bullets: [
-        "Contributing to CineFlow team research on chest X-ray classification, in progress toward journal submission (IEEE Access / ESWA)",
-        "Supporting related work on skin condition analysis targeting ICCE-ASIA 2026 conference submission",
-      ],
-    }    {
+      bullets: [],
+    },
     {
       company: "Illinois Institute of Technology",
       title: "Visiting Researcher — Optimization",
@@ -86,9 +82,9 @@ export const siteConfig = {
       degree: "B.Eng. Industrial Engineering · Double Major in AI-Convergence",
       dateRange: "Mar 2022 - Aug 2027 (Expected)",
       achievements: [
-        "GPA 3.52 / 4.50",
-        "TOEFL iBT 101 / 120",
-        "Relevant coursework: Operations Research, Machine Learning, Algorithms, Simulation Modeling, Statistics",
+        "Relevant coursework: Operations Research, Machine Learning, Data Structures, Algorithms, Computer Architecture, Operating Systems",
+        "Advanced AI Mathematics, Multimodal Deep Learning, Simulation Modeling",
+        "Probability & Statistics I·II, Linear Algebra, Engineering Mathematics I·II",
       ],
     },
   ],
