@@ -75,7 +75,7 @@ export const siteConfig: SiteConfig = {
     {
       name: "Shipyard Block Scheduling — OGC 2026",
       description:
-        "Hybrid exact/metaheuristic solver for spatial block scheduling in shipyard bays, where bay assignment, placement, and entry/exit days form one coupled decision under a 60-second budget per instance. Reduced the objective by one to two orders of magnitude on the official hidden evaluation set (−99.6% on the largest instance) at 100% feasibility across every accepted evaluation and all 40 training instances, with proven-optimal certificates on structured instances. Pairs a logic-based Benders decomposition over per-bay packing oracles with an ALNS operator portfolio and CP-SAT rescue tiers.",
+        "Hybrid exact/metaheuristic solver for spatial block scheduling in shipyard bays, one 60-second run per instance. Reduced the objective by one to two orders of magnitude on the official hidden evaluation set at 100% feasibility.",
       link: "https://github.com/glaubeleo-ruth/OGC_2026",
       skills: ["Python", "Gurobi", "OR-Tools", "CP-SAT", "Metaheuristics"],
     },
