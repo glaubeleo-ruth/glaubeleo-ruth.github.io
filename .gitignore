@@ -28,3 +28,6 @@ HANDOFF.md
 portfolio-content.md
 github-profile-README.md
 repo-readmes.md
+.vercel
+.env*
+!.env.example

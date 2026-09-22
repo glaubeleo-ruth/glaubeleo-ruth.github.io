@@ -59,6 +59,6 @@ The `src/config.ts` exports a `siteConfig` object with these sections:
 - Social links: email, linkedin, twitter, github (all optional)
 - aboutMe: string
 - skills: string[]
-- projects: array of {name, description, link, skills}
+- projects: array of {name, description, highlight?, link, skills} — fallback only; at build time `src/lib/notion.ts` loads projects from the Notion "Projects" database when `NOTION_TOKEN` is set (see `.env.example`)
 - experience: array of {company, title, dateRange, bullets}
 - education: array of {school, degree, dateRange, achievements}

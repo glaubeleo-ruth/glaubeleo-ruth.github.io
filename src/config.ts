@@ -1,6 +1,7 @@
-interface Project {
+export interface Project {
   name: string;
   description: string;
+  highlight?: string;
   link?: string;
   skills: string[];
 }
