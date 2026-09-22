@@ -1,0 +1,43 @@
+---
+import type { RichTextItemResponse } from "@notionhq/client";
+import { siteConfig } from "../../config";
+
+interface Props {
+  text: RichTextItemResponse[];
+}
+
+const { text } = Astro.props;
+---
+
+{
+  text.map((item) => {
+    const { bold, italic, strikethrough, underline, code } = item.annotations;
+    const classes = [
+      bold && "font-semibold text-gray-900",
+      italic && "italic",
+      strikethrough && "line-through",
+      underline && "underline",
+      code && "px-1.5 py-0.5 rounded bg-gray-100 text-gray-800 text-[0.9em]",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    return item.href ? (
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        class={`${classes} underline underline-offset-2`}
+        style={{ color: siteConfig.accentColor }}
+      >
+        {item.plain_text}
+      </a>
+    ) : code ? (
+      <code class={classes}>{item.plain_text}</code>
+    ) : classes ? (
+      <span class={classes}>{item.plain_text}</span>
+    ) : (
+      item.plain_text
+    );
+  })
+}

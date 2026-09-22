@@ -1,0 +1,77 @@
+---
+import Base from "../../layouts/Base.astro";
+import NotionBlocks from "../../components/notion/NotionBlocks.astro";
+import { siteConfig } from "../../config";
+import { getBlocks, getProjects, type NotionProject } from "../../lib/notion";
+
+// Only Notion-sourced projects have a slug; the siteConfig fallback yields no pages.
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects
+    .filter((project) => project.slug && project.notionId)
+    .map((project) => ({ params: { slug: project.slug }, props: { project } }));
+}
+
+interface Props {
+  project: NotionProject;
+}
+
+const { project } = Astro.props;
+const allBlocks = await getBlocks(project.notionId!);
+// Project pages open with an intro callout that repeats the header above; drop it here.
+const blocks = allBlocks[0]?.type === "callout" ? allBlocks.slice(1) : allBlocks;
+const hasMermaid = blocks.some(function containsMermaid(b): boolean {
+  return (b.type === "code" && b.code.language === "mermaid") || b.children.some(containsMermaid);
+});
+---
+
+<Base title={`${project.name} - ${siteConfig.name}`} description={project.description}>
+  <main class="max-w-4xl mx-auto px-6 sm:px-8 py-12 sm:py-16 space-y-10">
+    <a href="/#projects" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      All projects
+    </a>
+
+    <header class="space-y-5">
+      {(project.context || project.period) && (
+        <p class="text-sm font-mono" style={{ color: siteConfig.accentColor }}>
+          {[project.context, project.period].filter(Boolean).join(" · ")}
+        </p>
+      )}
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">{project.name}</h1>
+      <div class="w-[75px] h-[5px] rounded-full" style={`background-color: ${siteConfig.accentColor}`} />
+      <p class="text-lg text-gray-600 leading-relaxed">{project.description}</p>
+      <div class="flex flex-wrap items-center gap-2">
+        {project.skills.map((skill) => (
+          <span class="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm font-medium">{skill}</span>
+        ))}
+        {project.link && (
+          <a
+            href={project.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
+          >
+            View on GitHub
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
+            </svg>
+          </a>
+        )}
+      </div>
+    </header>
+
+    <article class="space-y-6">
+      <NotionBlocks blocks={blocks} />
+    </article>
+  </main>
+
+  {hasMermaid && (
+    <script type="module" is:inline>
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral" });
+    </script>
+  )}
+</Base>

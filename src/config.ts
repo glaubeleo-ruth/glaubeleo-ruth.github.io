@@ -2,6 +2,9 @@ export interface Project {
   name: string;
   description: string;
   highlight?: string;
+  context?: string;
+  period?: string;
+  slug?: string; // set only for Notion-sourced projects, which get a /projects/<slug> page
   link?: string;
   skills: string[];
 }
