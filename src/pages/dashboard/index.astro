@@ -1,0 +1,263 @@
+---
+import Base from "../../layouts/Base.astro";
+import Card from "../../components/dashboard/Card.astro";
+import DueBadge from "../../components/dashboard/DueBadge.astro";
+import { siteConfig } from "../../config";
+import { daysBetween, loadDashboard, type Competition, type DashboardData, type Task } from "../../lib/dashboard";
+
+export const prerender = false;
+
+// Notion pages behind each card's "Notion ↗" link.
+const notionUrl = (id: string) => `https://www.notion.so/${id}`;
+const LINKS = {
+  hub: notionUrl("3ad6201695868160a783fad40595ef6a"),
+  coursework: notionUrl("d3222865652a4c4dbc1de54da4b5d077"),
+  research: notionUrl("608553e3465e447ab17ad5ddef6acfde"),
+  papers: notionUrl("dc75c617209b48e1a9fc726cec560cf9"),
+  competitions: notionUrl("b305705bdf9b4718a1b82db2127b9487"),
+  gpa: notionUrl("3ad620169586818a8e5dd1959d97baa9"),
+  inbox: notionUrl("8127db6c67bd4429bc607cdb7199b037"),
+};
+
+let data: DashboardData | undefined;
+let loadError = "";
+try {
+  data = await loadDashboard();
+} catch (error) {
+  loadError = error instanceof Error ? error.message : String(error);
+  console.error("[dashboard]", error);
+}
+
+Astro.response.headers.set("Cache-Control", "private, no-store");
+
+const today = data?.today ?? "";
+const daysUntil = (date?: string) => (date === undefined ? undefined : daysBetween(today, date));
+
+const allTasks: Task[] = data ? [...data.coursework, ...data.research] : [];
+const dueThisWeek = allTasks.filter((t) => { const d = daysUntil(t.due); return d !== undefined && d >= 0 && d <= 7; }).length;
+const overdue = allTasks.filter((t) => { const d = daysUntil(t.due); return d !== undefined && d < 0; }).length;
+
+/** The next upcoming date for a competition, with what happens on it. */
+function nextMilestone(c: Competition): { label: string; date: string } | undefined {
+  const milestones = [
+    { label: "신청 마감", date: c.applyBy },
+    { label: "대회 시작", date: c.runsFrom },
+    { label: "라운드 종료", date: c.runsTo },
+    { label: "본선·발표", date: c.finals },
+  ].filter((m): m is { label: string; date: string } => Boolean(m.date) && daysBetween(today, m.date!) >= 0);
+  return milestones.sort((a, b) => a.date.localeCompare(b.date))[0];
+}
+const upcoming = (data?.competitions ?? [])
+  .map((c) => ({ competition: c, next: nextMilestone(c) }))
+  .sort((a, b) => (a.next?.date ?? "9999").localeCompare(b.next?.date ?? "9999"));
+const nextCompetition = upcoming.find((u) => u.next);
+
+// The requirements table has a "총계" (total) row; use it rather than summing overlapping areas.
+const totalRequirement = data?.graduation.find((r) => r.area === "총계");
+const creditsLeft = totalRequirement ? Math.max(totalRequirement.required - totalRequirement.earned, 0) : undefined;
+
+// Bars start at 2.5 so semester-to-semester differences are visible.
+const GPA_FLOOR = 2.5;
+const GPA_MAX = 4.5;
+const gpaHeight = (gpa: number) => `${(Math.max(gpa - GPA_FLOOR, 0) / (GPA_MAX - GPA_FLOOR)) * 100}%`;
+const dateLabel = today
+  ? new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(today))
+  : "";
+---
+
+<Base title={`Dashboard - ${siteConfig.name}`} noindex>
+  <div class="min-h-screen bg-gray-50">
+    <header class="border-b border-gray-200 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+        <h1 class="text-xl font-bold text-gray-900">Dashboard</h1>
+        <span class="text-sm text-gray-500">{dateLabel}</span>
+        <nav class="ml-auto flex items-center gap-4 text-sm">
+          <a href={LINKS.hub} target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-900">Notion Hub ↗</a>
+          <a href="/" class="text-gray-500 hover:text-gray-900">Portfolio</a>
+          <form method="POST" action="/api/dashboard/logout">
+            <button class="text-gray-500 hover:text-gray-900">Log out</button>
+          </form>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
+      {loadError && (
+        <div class="p-4 rounded-xl border border-red-200 bg-red-50 text-sm text-red-700">
+          Couldn't load Notion data: {loadError}
+        </div>
+      )}
+
+      {data && (
+        <>
+          <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl border border-gray-200 p-5">
+              <p class="text-xs text-gray-500">Due within 7 days</p>
+              <p class="text-3xl font-bold text-gray-900 mt-1">{dueThisWeek}</p>
+            </div>
+            <div class={`rounded-2xl border p-5 ${overdue ? "bg-red-50 border-red-200" : "bg-white border-gray-200"}`}>
+              <p class="text-xs text-gray-500">Overdue</p>
+              <p class={`text-3xl font-bold mt-1 ${overdue ? "text-red-700" : "text-gray-900"}`}>{overdue}</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-200 p-5 min-w-0">
+              <p class="text-xs text-gray-500">Next competition milestone</p>
+              {nextCompetition?.next ? (
+                <>
+                  <p class="text-3xl font-bold mt-1" style={{ color: siteConfig.accentColor }}>
+                    D-{daysBetween(today, nextCompetition.next.date)}
+                  </p>
+                  <p class="text-xs text-gray-600 truncate">{nextCompetition.next.label} · {nextCompetition.competition.title}</p>
+                </>
+              ) : (
+                <p class="text-3xl font-bold text-gray-300 mt-1">—</p>
+              )}
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-200 p-5">
+              <p class="text-xs text-gray-500">Credits left to graduate</p>
+              <p class="text-3xl font-bold text-gray-900 mt-1">{creditsLeft ?? "—"}</p>
+              {totalRequirement && (
+                <p class="text-xs text-gray-600">{totalRequirement.earned} / {totalRequirement.required} earned</p>
+              )}
+            </div>
+          </section>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div class="lg:col-span-2 space-y-6">
+              {[
+                { key: "coursework" as const, title: "Coursework", tasks: data.coursework, href: LINKS.coursework },
+                { key: "research" as const, title: "Research tasks", tasks: data.research, href: LINKS.research },
+              ].map(({ key, title, tasks, href }) => (
+                <Card title={title} count={tasks.length} href={href}>
+                  {tasks.length === 0 ? (
+                    <p class="text-sm text-gray-400">Nothing open. 🎉</p>
+                  ) : (
+                    <ul class="divide-y divide-gray-100">
+                      {tasks.map((task) => (
+                        <li class="flex items-center gap-3 py-2.5">
+                          <form method="POST" action="/api/dashboard/complete">
+                            <input type="hidden" name="kind" value={key} />
+                            <input type="hidden" name="id" value={task.id} />
+                            <button
+                              title="Mark done"
+                              class="w-5 h-5 rounded-md border-2 border-gray-300 hover:border-gray-900 hover:bg-gray-100 transition-colors"
+                            />
+                          </form>
+                          <a href={task.url} target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0">
+                            <p class="text-sm text-gray-900 truncate hover:underline">{task.title || "Untitled"}</p>
+                            <p class="text-xs text-gray-400 truncate">
+                              {[task.label, task.type, task.status].filter(Boolean).join(" · ")}
+                            </p>
+                          </a>
+                          <DueBadge today={today} date={task.due} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Card>
+              ))}
+
+              <Card title="GPA by semester" href={LINKS.gpa}>
+                <div class="flex items-end gap-2 sm:gap-3 h-44">
+                  {data.gpa.map((row) => (
+                    <div class="flex-1 min-w-0 h-full flex flex-col items-center justify-end gap-1">
+                      <span class="text-[10px] sm:text-xs text-gray-600 tabular-nums">{row.gpa.toFixed(2)}</span>
+                      <div
+                        class={`w-full rounded-t-md ${row.planned ? "border-2 border-dashed" : ""}`}
+                        style={row.planned
+                          ? { height: gpaHeight(row.gpa), borderColor: siteConfig.accentColor }
+                          : { height: gpaHeight(row.gpa), backgroundColor: siteConfig.accentColor }}
+                      />
+                      <span class="text-[10px] sm:text-xs text-gray-500 truncate">{row.term}</span>
+                    </div>
+                  ))}
+                </div>
+                <p class="text-xs text-gray-400">Axis {GPA_FLOOR}–{GPA_MAX} · dashed bar = planned/target</p>
+              </Card>
+            </div>
+
+            <div class="space-y-6">
+              <Card title="Inbox" count={data.inbox.length} href={LINKS.inbox} id="inbox">
+                <form method="POST" action="/api/dashboard/inbox" class="flex gap-2">
+                  <input
+                    name="note"
+                    placeholder="Quick note…"
+                    required
+                    maxlength="2000"
+                    class="flex-1 min-w-0 px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-gray-900"
+                  />
+                  <button class="px-3 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-gray-700">Add</button>
+                </form>
+                {data.inbox.length > 0 && (
+                  <ul class="divide-y divide-gray-100">
+                    {data.inbox.map((item) => (
+                      <li class="flex items-start gap-2 py-2">
+                        <a href={item.url} target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0 text-sm text-gray-800 break-words hover:underline">
+                          {item.note}
+                        </a>
+                        <form method="POST" action="/api/dashboard/inbox">
+                          <input type="hidden" name="archive" value={item.id} />
+                          <button title="Mark handled" class="text-xs text-gray-400 hover:text-gray-900">✓</button>
+                        </form>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+
+              <Card title="공모전" count={upcoming.length} href={LINKS.competitions}>
+                <ul class="space-y-3">
+                  {upcoming.map(({ competition, next }) => (
+                    <li class="space-y-1">
+                      <div class="flex items-start gap-2">
+                        <a href={competition.url} target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0 text-sm text-gray-900 hover:underline">
+                          {competition.title}
+                        </a>
+                        {next && <DueBadge today={today} date={next.date} />}
+                      </div>
+                      <p class="text-xs text-gray-400">
+                        {[competition.status, next && `${next.label} ${next.date}`].filter(Boolean).join(" · ")}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+
+              <Card title="Papers" count={data.papers.length} href={LINKS.papers}>
+                <ul class="space-y-2">
+                  {data.papers.map((paper) => (
+                    <li class="flex items-start gap-2">
+                      <a href={paper.url} target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0">
+                        <p class="text-sm text-gray-900 hover:underline">{paper.title}</p>
+                        <p class="text-xs text-gray-400">{[paper.stage, paper.venue].filter(Boolean).join(" → ")}</p>
+                      </a>
+                      {paper.deadline && <DueBadge today={today} date={paper.deadline} />}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+
+              <Card title="Graduation" href={LINKS.gpa}>
+                <ul class="space-y-3">
+                  {data.graduation.map((req) => {
+                    const pct = req.required ? Math.min(req.earned / req.required, 1) : 0;
+                    return (
+                      <li class="space-y-1">
+                        <div class="flex justify-between text-xs">
+                          <span class="text-gray-700 truncate">{req.area}</span>
+                          <span class="text-gray-500 tabular-nums">{req.earned}/{req.required}</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                          <div class="h-full rounded-full" style={{ width: `${pct * 100}%`, backgroundColor: siteConfig.accentColor }} />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Card>
+            </div>
+          </div>
+        </>
+      )}
+    </main>
+  </div>
+</Base>

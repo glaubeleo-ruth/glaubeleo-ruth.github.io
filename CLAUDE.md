@@ -44,6 +44,14 @@ The project follows a component-based architecture with all customization centra
 - The project uses IBM Plex Mono font loaded from Google Fonts
 - Social links in the config are all optional and will conditionally render
 
+## Private dashboard
+
+`/dashboard` is a password-protected, server-rendered view of Jungwoo's Notion Hub (deploys to Vercel via `@astrojs/vercel`; every other page stays prerendered).
+
+- `src/middleware.ts` guards `/dashboard/*` and `/api/dashboard/*` with an HMAC-signed cookie (`src/lib/auth.ts`).
+- `src/lib/dashboard.ts` reads the Hub's data sources and performs the only writes: mark coursework/research done, add/archive Inbox notes. Writes check the page's parent data source before updating.
+- Server secrets come from `astro:env/server`: `NOTION_DASHBOARD_TOKEN`, `DASHBOARD_PASSWORD`, `DASHBOARD_SECRET` (see `.env.example`). Without the password and secret the dashboard stays locked.
+
 ## Working with Components
 
 When modifying components:
