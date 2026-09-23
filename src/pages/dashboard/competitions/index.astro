@@ -1,0 +1,127 @@
+---
+import Base from "../../../layouts/Base.astro";
+import Card from "../../../components/dashboard/Card.astro";
+import DueBadge from "../../../components/dashboard/DueBadge.astro";
+import { COMPETITION_STATUSES, daysBetween, loadCompetitions, type Competition } from "../../../lib/dashboard";
+
+export const prerender = false;
+
+let competitions: Competition[] = [];
+let today = "";
+let loadError = "";
+try {
+  ({ competitions, today } = await loadCompetitions());
+} catch (error) {
+  loadError = error instanceof Error ? error.message : String(error);
+  console.error("[dashboard]", error);
+}
+
+Astro.response.headers.set("Cache-Control", "private, no-store");
+
+const statusTone: Record<string, string> = {
+  "관심": "bg-gray-100 text-gray-600",
+  "준비 중": "bg-yellow-100 text-yellow-800",
+  "진행 중": "bg-blue-100 text-blue-700",
+  "제출 완료": "bg-purple-100 text-purple-700",
+  "수상": "bg-green-100 text-green-700",
+  "미수상": "bg-red-100 text-red-700",
+};
+
+/** The soonest date still ahead, so each row shows what is actually next. */
+function nextMilestone(c: Competition) {
+  return [
+    { label: "신청 마감", date: c.applyBy },
+    { label: "대회 시작", date: c.runsFrom },
+    { label: "라운드 종료", date: c.runsTo },
+    { label: "본선·발표", date: c.finals },
+  ]
+    .filter((m): m is { label: string; date: string } => Boolean(m.date) && daysBetween(today, m.date!) >= 0)
+    .sort((a, b) => a.date.localeCompare(b.date))[0];
+}
+---
+
+<Base title="공모전 - Dashboard" noindex>
+  <div class="min-h-screen bg-gray-50">
+    <header class="border-b border-gray-200 bg-white">
+      <div class="max-w-5xl mx-auto px-4 sm:px-8 py-4 flex items-center gap-4">
+        <a href="/dashboard" class="text-sm text-gray-500 hover:text-gray-900">← Dashboard</a>
+        <h1 class="font-bold text-gray-900">공모전</h1>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
+      {loadError && (
+        <div class="p-4 rounded-xl border border-red-200 bg-red-50 text-sm text-red-700">
+          불러오지 못했습니다: {loadError}
+        </div>
+      )}
+
+      <Card title="전체" count={competitions.length}>
+        {competitions.length === 0 ? (
+          <p class="text-sm text-gray-400">등록된 공모전이 없습니다.</p>
+        ) : (
+          <ul class="divide-y divide-gray-100">
+            {competitions.map((c) => {
+              const next = nextMilestone(c);
+              return (
+                <li>
+                  <a href={`/dashboard/competitions/${c.id.replace(/-/g, "")}`} class="flex items-center gap-3 py-3 group">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm text-gray-900 truncate group-hover:underline">{c.title}</p>
+                      <p class="text-xs text-gray-400 truncate">
+                        {[c.host, next && `${next.label} ${next.date}`, c.result].filter(Boolean).join(" · ")}
+                      </p>
+                    </div>
+                    {c.status && (
+                      <span class={`shrink-0 px-2 py-0.5 rounded-md text-xs font-medium ${statusTone[c.status] ?? "bg-gray-100 text-gray-600"}`}>
+                        {c.status}
+                      </span>
+                    )}
+                    {next && <DueBadge today={today} date={next.date} />}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card>
+
+      <Card title="새 공모전 추가">
+        <form method="POST" action="/api/dashboard/competition" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input
+            name="title"
+            placeholder="대회명"
+            required
+            maxlength="200"
+            class="sm:col-span-2 px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-gray-900"
+          />
+          <input
+            name="host"
+            placeholder="주최"
+            maxlength="100"
+            class="px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-gray-900"
+          />
+          <input
+            type="date"
+            name="applyBy"
+            title="신청 마감"
+            class="px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-gray-900"
+          />
+          <input
+            name="announcement"
+            type="url"
+            placeholder="공고 링크 (선택)"
+            maxlength="500"
+            class="px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-gray-900"
+          />
+          <div class="flex gap-2">
+            <select name="status" class="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-gray-900">
+              {COMPETITION_STATUSES.map((status) => <option value={status}>{status}</option>)}
+            </select>
+            <button class="px-4 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-gray-700">추가</button>
+          </div>
+        </form>
+      </Card>
+    </main>
+  </div>
+</Base>

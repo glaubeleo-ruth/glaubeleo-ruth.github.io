@@ -271,6 +271,44 @@ export async function loadCompetition(pageId: string): Promise<CompetitionDetail
   return { competition: toCompetition(page), tasks: tasks.map(toTeamTask), blocks, today: seoulToday() };
 }
 
+/** Every competition, newest deadline first; finished ones last. */
+export async function loadCompetitions(): Promise<{ competitions: Competition[]; today: string }> {
+  const client = notion();
+  const rows = await query(client, SOURCES.competitions, {
+    sorts: [{ property: "신청 마감", direction: "ascending" }],
+  });
+  const finished = (status?: string) => status === "수상" || status === "미수상";
+  const competitions = rows
+    .map(toCompetition)
+    .sort((a, b) => Number(finished(a.status)) - Number(finished(b.status)));
+  return { competitions, today: seoulToday() };
+}
+
+export interface NewCompetition {
+  title: string;
+  host?: string;
+  applyBy?: string;
+  status?: string;
+  announcement?: string;
+}
+
+export async function createCompetition(input: NewCompetition): Promise<string> {
+  const status = input.status && COMPETITION_STATUSES.includes(input.status as (typeof COMPETITION_STATUSES)[number])
+    ? input.status
+    : "관심";
+  const page = await notion().pages.create({
+    parent: { type: "data_source_id", data_source_id: SOURCES.competitions },
+    properties: {
+      "대회명": { title: [{ text: { content: input.title } }] },
+      "상태": { select: { name: status } },
+      ...(input.host ? { "주최": { rich_text: [{ text: { content: input.host } }] } } : {}),
+      ...(input.applyBy ? { "신청 마감": { date: { start: input.applyBy } } } : {}),
+      ...(input.announcement ? { "공고 링크": { url: input.announcement } } : {}),
+    },
+  });
+  return page.id;
+}
+
 export interface NewTeamTask {
   title: string;
   owner?: string;

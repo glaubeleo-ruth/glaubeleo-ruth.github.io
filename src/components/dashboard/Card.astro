@@ -2,11 +2,13 @@
 interface Props {
   title: string;
   count?: number;
-  href?: string; // "open in Notion" link
+  href?: string;
+  linkLabel?: string;
   id?: string;
 }
 
-const { title, count, href, id } = Astro.props;
+const { title, count, href, linkLabel = "Notion ↗", id } = Astro.props;
+const external = href?.startsWith("http");
 ---
 
 <section id={id} class="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 space-y-4 min-w-0">
@@ -16,8 +18,13 @@ const { title, count, href, id } = Astro.props;
       {count !== undefined && <span class="ml-1.5 text-sm font-medium text-gray-400">{count}</span>}
     </h2>
     {href && (
-      <a href={href} target="_blank" rel="noopener noreferrer" class="text-xs text-gray-400 hover:text-gray-900 transition-colors">
-        Notion ↗
+      <a
+        href={href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer" : undefined}
+        class="text-xs text-gray-400 hover:text-gray-900 transition-colors shrink-0"
+      >
+        {linkLabel}
       </a>
     )}
   </header>

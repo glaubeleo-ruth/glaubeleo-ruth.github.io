@@ -262,7 +262,7 @@ const dateLabel = today
                 )}
               </Card>
 
-              <Card title="공모전" count={upcoming.length} href={LINKS.competitions}>
+              <Card title="공모전" count={upcoming.length} href="/dashboard/competitions" linkLabel="전체 보기 →">
                 <ul class="space-y-3">
                   {upcoming.map(({ competition, next }) => (
                     <li class="space-y-1">
