@@ -1,0 +1,205 @@
+---
+import Base from "../../../layouts/Base.astro";
+import Card from "../../../components/dashboard/Card.astro";
+import DueBadge from "../../../components/dashboard/DueBadge.astro";
+import NotionBlocks from "../../../components/notion/NotionBlocks.astro";
+import { siteConfig } from "../../../config";
+import { COMPETITION_STATUSES, loadCompetition, type CompetitionDetail } from "../../../lib/dashboard";
+
+export const prerender = false;
+
+const { id } = Astro.params;
+const backTo = `/dashboard/competitions/${id}`;
+
+let detail: CompetitionDetail | undefined;
+let loadError = "";
+try {
+  detail = await loadCompetition(String(id));
+} catch (error) {
+  loadError = error instanceof Error ? error.message : String(error);
+  console.error("[dashboard]", error);
+}
+
+Astro.response.headers.set("Cache-Control", "private, no-store");
+
+const c = detail?.competition;
+const today = detail?.today ?? "";
+const open = (detail?.tasks ?? []).filter((t) => t.status !== "완료");
+const done = (detail?.tasks ?? []).filter((t) => t.status === "완료");
+
+const schedule = c
+  ? [
+      { label: "신청 마감", date: c.applyBy },
+      { label: "대회 시작", date: c.runsFrom },
+      { label: "라운드 종료", date: c.runsTo },
+      { label: "본선·발표", date: c.finals },
+    ].filter((row): row is { label: string; date: string } => Boolean(row.date))
+  : [];
+---
+
+<Base title={c ? `${c.title} - Dashboard` : "Competition"} noindex>
+  <div class="min-h-screen bg-gray-50">
+    <header class="border-b border-gray-200 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex items-center gap-4">
+        <a href="/dashboard" class="text-sm text-gray-500 hover:text-gray-900">← Dashboard</a>
+        <nav class="ml-auto flex items-center gap-4 text-sm">
+          {c?.workspace && (
+            <a href={c.workspace} target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-900">작업 공간 ↗</a>
+          )}
+          {c && (
+            <a href={c.url} target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-900">Notion ↗</a>
+          )}
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
+      {loadError && (
+        <div class="p-4 rounded-xl border border-red-200 bg-red-50 text-sm text-red-700">
+          불러오지 못했습니다: {loadError}
+        </div>
+      )}
+
+      {c && detail && (
+        <>
+          <section class="space-y-4">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">{c.title}</h1>
+            <p class="text-sm text-gray-500">{[c.host, c.team].filter(Boolean).join(" · ")}</p>
+            <form method="POST" action="/api/dashboard/team" class="flex flex-wrap items-center gap-1.5">
+              <input type="hidden" name="competition" value={c.id} />
+              <input type="hidden" name="back" value={backTo} />
+              {COMPETITION_STATUSES.map((status) => (
+                <button
+                  name="status"
+                  value={status}
+                  class={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    status === c.status
+                      ? "bg-gray-900 text-white"
+                      : "bg-white border border-gray-200 text-gray-600 hover:border-gray-900"
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </form>
+          </section>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div class="lg:col-span-2 space-y-6">
+              <Card title="팀 업무" count={open.length}>
+                <form method="POST" action="/api/dashboard/team" class="grid grid-cols-2 sm:grid-cols-[1fr_auto_auto_auto] gap-2">
+                  <input type="hidden" name="competition" value={c.id} />
+                  <input type="hidden" name="back" value={backTo} />
+                  <input
+                    name="title"
+                    placeholder="할 일"
+                    required
+                    maxlength="200"
+                    class="col-span-2 sm:col-span-1 px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-gray-900"
+                  />
+                  <input
+                    name="owner"
+                    placeholder="담당"
+                    maxlength="50"
+                    class="px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-gray-900 w-full sm:w-28"
+                  />
+                  <input
+                    type="date"
+                    name="due"
+                    class="px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:border-gray-900"
+                  />
+                  <button class="px-4 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-gray-700">추가</button>
+                </form>
+
+                {open.length === 0 ? (
+                  <p class="text-sm text-gray-400">열린 업무가 없습니다.</p>
+                ) : (
+                  <ul class="divide-y divide-gray-100">
+                    {open.map((task) => (
+                      <li class="flex items-center gap-3 py-2.5">
+                        <form method="POST" action="/api/dashboard/complete">
+                          <input type="hidden" name="kind" value="team" />
+                          <input type="hidden" name="id" value={task.id} />
+                          <button title="완료로 표시" class="w-5 h-5 rounded-md border-2 border-gray-300 hover:border-gray-900 hover:bg-gray-100 transition-colors" />
+                        </form>
+                        <a href={task.url} target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0">
+                          <p class="text-sm text-gray-900 truncate hover:underline">{task.title}</p>
+                          <p class="text-xs text-gray-400 truncate">{[task.owner, task.status].filter(Boolean).join(" · ")}</p>
+                        </a>
+                        {task.deliverable && (
+                          <a href={task.deliverable} target="_blank" rel="noopener noreferrer" class="shrink-0 text-xs text-gray-400 hover:text-gray-900">산출물 ↗</a>
+                        )}
+                        <DueBadge today={today} date={task.due} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {done.length > 0 && (
+                  <details class="pt-1">
+                    <summary class="text-xs text-gray-400 cursor-pointer">완료 {done.length}건</summary>
+                    <ul class="pt-2 space-y-1">
+                      {done.map((task) => (
+                        <li class="text-sm text-gray-400 line-through truncate">{task.title}</li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </Card>
+
+              {detail.blocks.length > 0 && (
+                <Card title="메모" href={c.url}>
+                  <div class="space-y-4"><NotionBlocks blocks={detail.blocks} /></div>
+                </Card>
+              )}
+            </div>
+
+            <div class="space-y-6">
+              <Card title="일정">
+                {schedule.length === 0 ? (
+                  <p class="text-sm text-gray-400">등록된 일정이 없습니다.</p>
+                ) : (
+                  <ul class="space-y-2">
+                    {schedule.map((row) => (
+                      <li class="flex items-center gap-2 text-sm">
+                        <span class="flex-1 text-gray-700">{row.label}</span>
+                        <span class="text-gray-500 tabular-nums">{row.date}</span>
+                        <DueBadge today={today} date={row.date} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+
+              <Card title="정보">
+                <dl class="space-y-2 text-sm">
+                  {[
+                    { label: "상태", value: c.status },
+                    { label: "팀", value: c.team },
+                    { label: "상금·혜택", value: c.prize },
+                    { label: "결과", value: c.result },
+                  ].filter((row) => row.value).map((row) => (
+                    <div>
+                      <dt class="text-xs text-gray-400">{row.label}</dt>
+                      <dd class="text-gray-800">{row.value}</dd>
+                    </div>
+                  ))}
+                  {c.announcement && (
+                    <div>
+                      <dt class="text-xs text-gray-400">공고</dt>
+                      <dd>
+                        <a href={c.announcement} target="_blank" rel="noopener noreferrer" class="underline break-all" style={{ color: siteConfig.accentColor }}>
+                          {c.announcement}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </Card>
+            </div>
+          </div>
+        </>
+      )}
+    </main>
+  </div>
+</Base>

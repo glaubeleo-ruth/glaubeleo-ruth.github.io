@@ -1,6 +1,7 @@
 import { Client, isFullPage } from "@notionhq/client";
 import type { PageObjectResponse, QueryDataSourceParameters } from "@notionhq/client";
 import { NOTION_DASHBOARD_TOKEN } from "astro:env/server";
+import { fetchBlockTree, type NotionBlock } from "./notion";
 
 // Data sources in Jungwoo's Hub. The dashboard integration must be connected to the Hub page.
 export const SOURCES = {
@@ -38,7 +39,10 @@ export interface Paper { id: string; url: string; title: string; stage?: string;
 export interface Competition {
   id: string; url: string; title: string; status?: string;
   applyBy?: string; finals?: string; runsFrom?: string; runsTo?: string;
+  host?: string; team?: string; prize?: string; result?: string;
+  announcement?: string; workspace?: string;
 }
+export const COMPETITION_STATUSES = ["관심", "준비 중", "진행 중", "제출 완료", "수상", "미수상"] as const;
 export interface SemesterGpa { term: string; gpa: number; credits: number; planned: boolean }
 export interface Requirement { area: string; earned: number; required: number }
 export interface InboxItem { id: string; url: string; note: string; created: string }
@@ -83,6 +87,38 @@ const dateStart = (p?: Property): string | undefined =>
   p?.type === "date" ? p.date?.start.slice(0, 10) : undefined;
 const dateEnd = (p?: Property): string | undefined =>
   p?.type === "date" ? p.date?.end?.slice(0, 10) : undefined;
+const url = (p?: Property): string | undefined =>
+  p?.type === "url" ? (p.url ?? undefined) : undefined;
+
+function toCompetition({ id, url: pageUrl, properties: p }: PageObjectResponse): Competition {
+  return {
+    id, url: pageUrl,
+    title: text(p["대회명"]),
+    status: select(p["상태"]),
+    applyBy: dateStart(p["신청 마감"]),
+    finals: dateStart(p["본선·발표"]),
+    runsFrom: dateStart(p["대회 기간"]),
+    runsTo: dateEnd(p["대회 기간"]),
+    host: text(p["주최"]) || undefined,
+    team: text(p["팀"]) || undefined,
+    prize: text(p["상금·혜택"]) || undefined,
+    result: text(p["결과"]) || undefined,
+    announcement: url(p["공고 링크"]),
+    workspace: url(p["작업 페이지"]),
+  };
+}
+
+function toTeamTask({ id, url: pageUrl, properties: p }: PageObjectResponse): TeamTask {
+  return {
+    id, url: pageUrl,
+    title: text(p["할 일"]),
+    owner: select(p["담당"]),
+    project: select(p["프로젝트"]),
+    status: select(p["상태"]),
+    due: dateStart(p["마감"]),
+    deliverable: url(p["산출물"]),
+  };
+}
 
 /** Queries a data source, dropping blank rows (pages whose title is empty). */
 async function query(
@@ -164,24 +200,8 @@ export async function loadDashboard(): Promise<DashboardData> {
         deadline: dateStart(p.Deadline),
       }))
       .filter((paper) => paper.stage && paper.stage !== "Accepted"),
-    competitions: competitions.map(({ id, url, properties: p }) => ({
-      id, url,
-      title: text(p["대회명"]),
-      status: select(p["상태"]),
-      applyBy: dateStart(p["신청 마감"]),
-      finals: dateStart(p["본선·발표"]),
-      runsFrom: dateStart(p["대회 기간"]),
-      runsTo: dateEnd(p["대회 기간"]),
-    })),
-    team: team.map(({ id, url, properties: p }) => ({
-      id, url,
-      title: text(p["할 일"]),
-      owner: select(p["담당"]),
-      project: select(p["프로젝트"]),
-      status: select(p["상태"]),
-      due: dateStart(p["마감"]),
-      deliverable: p["산출물"]?.type === "url" ? (p["산출물"].url ?? undefined) : undefined,
-    })),
+    competitions: competitions.map(toCompetition),
+    team: team.map(toTeamTask),
     gpa: gpa
       .map(({ properties: p }) => ({
         term: text(p["학기"]),
@@ -223,6 +243,67 @@ export async function completeTask(kind: CompletableKind, pageId: string): Promi
     page_id: pageId,
     properties: { [target.property]: { select: { name: target.value } } },
   });
+}
+
+export interface CompetitionDetail {
+  competition: Competition;
+  tasks: TeamTask[];
+  blocks: NotionBlock[]; // the competition page's own notes
+  today: string;
+}
+
+/** One competition with its linked team tasks and page notes. */
+export async function loadCompetition(pageId: string): Promise<CompetitionDetail> {
+  const client = notion();
+  await assertParent(client, pageId, SOURCES.competitions);
+
+  const page = await client.pages.retrieve({ page_id: pageId });
+  if (!isFullPage(page)) throw new Error(`Competition ${pageId} is not accessible`);
+
+  const [tasks, blocks] = await Promise.all([
+    query(client, SOURCES.team, {
+      filter: { property: "공모전", relation: { contains: pageId } },
+      sorts: [{ property: "마감", direction: "ascending" }],
+    }),
+    fetchBlockTree(client, pageId),
+  ]);
+
+  return { competition: toCompetition(page), tasks: tasks.map(toTeamTask), blocks, today: seoulToday() };
+}
+
+export interface NewTeamTask {
+  title: string;
+  owner?: string;
+  due?: string;
+  project?: string;
+  competitionId?: string;
+}
+
+export async function createTeamTask(task: NewTeamTask): Promise<void> {
+  const client = notion();
+  if (task.competitionId) await assertParent(client, task.competitionId, SOURCES.competitions);
+
+  await client.pages.create({
+    parent: { type: "data_source_id", data_source_id: SOURCES.team },
+    properties: {
+      "할 일": { title: [{ text: { content: task.title } }] },
+      "상태": { select: { name: "대기" } },
+      ...(task.owner ? { "담당": { select: { name: task.owner } } } : {}),
+      ...(task.due ? { "마감": { date: { start: task.due } } } : {}),
+      ...(task.project ? { "프로젝트": { select: { name: task.project } } } : {}),
+      ...(task.competitionId ? { "공모전": { relation: [{ id: task.competitionId }] } } : {}),
+    },
+  });
+}
+
+/** Moves a competition along its pipeline (관심 → 준비 중 → … → 수상). */
+export async function setCompetitionStatus(pageId: string, status: string): Promise<void> {
+  if (!COMPETITION_STATUSES.includes(status as (typeof COMPETITION_STATUSES)[number])) {
+    throw new Error(`Unknown competition status: ${status}`);
+  }
+  const client = notion();
+  await assertParent(client, pageId, SOURCES.competitions);
+  await client.pages.update({ page_id: pageId, properties: { "상태": { select: { name: status } } } });
 }
 
 export async function addInboxNote(note: string): Promise<void> {

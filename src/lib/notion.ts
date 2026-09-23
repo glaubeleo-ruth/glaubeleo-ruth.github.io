@@ -66,18 +66,21 @@ export async function getProjects(): Promise<NotionProject[]> {
 }
 
 /**
- * Fetches a page's block tree, recursing into blocks that have children.
- * Requests run one at a time to stay under Notion's ~3 requests/second limit.
+ * Fetches a page's block tree with the given client, recursing into blocks that have
+ * children. Requests run one at a time to stay under Notion's ~3 requests/second limit.
  */
-export async function getBlocks(blockId: string): Promise<NotionBlock[]> {
-  const notion = client();
-  if (!notion) return [];
-
+export async function fetchBlockTree(notion: Client, blockId: string): Promise<NotionBlock[]> {
   const blocks = (await collectPaginatedAPI(notion.blocks.children.list, { block_id: blockId }))
     .filter(isFullBlock);
   const tree: NotionBlock[] = [];
   for (const block of blocks) {
-    tree.push({ ...block, children: block.has_children ? await getBlocks(block.id) : [] });
+    tree.push({ ...block, children: block.has_children ? await fetchBlockTree(notion, block.id) : [] });
   }
   return tree;
+}
+
+/** Block tree for the build-time (portfolio) token. */
+export async function getBlocks(blockId: string): Promise<NotionBlock[]> {
+  const notion = client();
+  return notion ? fetchBlockTree(notion, blockId) : [];
 }

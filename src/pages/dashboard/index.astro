@@ -267,7 +267,7 @@ const dateLabel = today
                   {upcoming.map(({ competition, next }) => (
                     <li class="space-y-1">
                       <div class="flex items-start gap-2">
-                        <a href={competition.url} target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0 text-sm text-gray-900 hover:underline">
+                        <a href={`/dashboard/competitions/${competition.id.replace(/-/g, "")}`} class="flex-1 min-w-0 text-sm text-gray-900 hover:underline">
                           {competition.title}
                         </a>
                         {next && <DueBadge today={today} date={next.date} />}
