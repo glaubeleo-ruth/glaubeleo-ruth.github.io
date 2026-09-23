@@ -11,12 +11,14 @@ export const SOURCES = {
   semesterGpa: "eb02d510-5378-4904-bae5-24769d5269f9",
   graduation: "abe2042e-bb9c-4999-8561-3630cb143f85",
   inbox: "980ede7f-4424-4510-b5b5-c3fbc7238e9e",
+  team: "93ba9e79-b55a-4471-8542-30a4d01e82e7",
 } as const;
 
 /** Pages the dashboard may mark as done, and the select value that means "done". */
 export const COMPLETABLE = {
   coursework: { source: SOURCES.coursework, property: "Status", value: "Done" },
   research: { source: SOURCES.research, property: "Status", value: "Done" },
+  team: { source: SOURCES.team, property: "상태", value: "완료" },
 } as const;
 export type CompletableKind = keyof typeof COMPLETABLE;
 
@@ -40,6 +42,7 @@ export interface Competition {
 export interface SemesterGpa { term: string; gpa: number; credits: number; planned: boolean }
 export interface Requirement { area: string; earned: number; required: number }
 export interface InboxItem { id: string; url: string; note: string; created: string }
+export interface TeamTask extends Task { owner?: string; project?: string; deliverable?: string }
 
 export interface DashboardData {
   today: string;
@@ -47,6 +50,7 @@ export interface DashboardData {
   research: Task[];
   papers: Paper[];
   competitions: Competition[];
+  team: TeamTask[];
   gpa: SemesterGpa[];
   graduation: Requirement[];
   inbox: InboxItem[];
@@ -101,7 +105,7 @@ const notDone = (property: string) => ({
 
 export async function loadDashboard(): Promise<DashboardData> {
   const client = notion();
-  const [coursework, research, papers, competitions, gpa, graduation, inbox] = await Promise.all([
+  const [coursework, research, papers, competitions, team, gpa, graduation, inbox] = await Promise.all([
     query(client, SOURCES.coursework, {
       filter: notDone("Status"),
       sorts: [{ property: "Due", direction: "ascending" }],
@@ -119,6 +123,10 @@ export async function loadDashboard(): Promise<DashboardData> {
         ],
       },
       sorts: [{ property: "신청 마감", direction: "ascending" }],
+    }),
+    query(client, SOURCES.team, {
+      filter: { property: "상태", select: { does_not_equal: "완료" } },
+      sorts: [{ property: "마감", direction: "ascending" }],
     }),
     query(client, SOURCES.semesterGpa, { sorts: [{ property: "순서", direction: "ascending" }] }),
     query(client, SOURCES.graduation),
@@ -164,6 +172,15 @@ export async function loadDashboard(): Promise<DashboardData> {
       finals: dateStart(p["본선·발표"]),
       runsFrom: dateStart(p["대회 기간"]),
       runsTo: dateEnd(p["대회 기간"]),
+    })),
+    team: team.map(({ id, url, properties: p }) => ({
+      id, url,
+      title: text(p["할 일"]),
+      owner: select(p["담당"]),
+      project: select(p["프로젝트"]),
+      status: select(p["상태"]),
+      due: dateStart(p["마감"]),
+      deliverable: p["산출물"]?.type === "url" ? (p["산출물"].url ?? undefined) : undefined,
     })),
     gpa: gpa
       .map(({ properties: p }) => ({

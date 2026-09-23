@@ -3,7 +3,7 @@ import Base from "../../layouts/Base.astro";
 import Card from "../../components/dashboard/Card.astro";
 import DueBadge from "../../components/dashboard/DueBadge.astro";
 import { siteConfig } from "../../config";
-import { daysBetween, loadDashboard, type Competition, type DashboardData, type Task } from "../../lib/dashboard";
+import { daysBetween, loadDashboard, type Competition, type DashboardData, type Task, type TeamTask } from "../../lib/dashboard";
 
 export const prerender = false;
 
@@ -15,6 +15,7 @@ const LINKS = {
   research: notionUrl("608553e3465e447ab17ad5ddef6acfde"),
   papers: notionUrl("dc75c617209b48e1a9fc726cec560cf9"),
   competitions: notionUrl("b305705bdf9b4718a1b82db2127b9487"),
+  team: notionUrl("de3515272ce14ee7a29c5a0f3c4c64f9"),
   gpa: notionUrl("3ad620169586818a8e5dd1959d97baa9"),
   inbox: notionUrl("8127db6c67bd4429bc607cdb7199b037"),
 };
@@ -33,7 +34,16 @@ Astro.response.headers.set("Cache-Control", "private, no-store");
 const today = data?.today ?? "";
 const daysUntil = (date?: string) => (date === undefined ? undefined : daysBetween(today, date));
 
-const allTasks: Task[] = data ? [...data.coursework, ...data.research] : [];
+const allTasks: Task[] = data ? [...data.coursework, ...data.research, ...data.team] : [];
+
+// Team tasks are grouped by owner so it's obvious who is holding what.
+const teamByOwner = Object.entries(
+  (data?.team ?? []).reduce<Record<string, TeamTask[]>>((groups, task) => {
+    const owner = task.owner ?? "담당 미정";
+    (groups[owner] ??= []).push(task);
+    return groups;
+  }, {}),
+);
 const dueThisWeek = allTasks.filter((t) => { const d = daysUntil(t.due); return d !== undefined && d >= 0 && d <= 7; }).length;
 const overdue = allTasks.filter((t) => { const d = daysUntil(t.due); return d !== undefined && d < 0; }).length;
 
@@ -155,6 +165,54 @@ const dateLabel = today
                   )}
                 </Card>
               ))}
+
+              <Card title="팀 업무" count={data.team.length} href={LINKS.team}>
+                {data.team.length === 0 ? (
+                  <p class="text-sm text-gray-400">
+                    아직 등록된 팀 업무가 없습니다. Notion에서 담당·마감을 채워보세요.
+                  </p>
+                ) : (
+                  <div class="space-y-4">
+                    {teamByOwner.map(([owner, tasks]) => (
+                      <div class="space-y-1.5">
+                        <p class="text-xs font-semibold text-gray-500">{owner} · {tasks.length}</p>
+                        <ul class="divide-y divide-gray-100">
+                          {tasks.map((task) => (
+                            <li class="flex items-center gap-3 py-2">
+                              <form method="POST" action="/api/dashboard/complete">
+                                <input type="hidden" name="kind" value="team" />
+                                <input type="hidden" name="id" value={task.id} />
+                                <button
+                                  title="완료로 표시"
+                                  class="w-5 h-5 rounded-md border-2 border-gray-300 hover:border-gray-900 hover:bg-gray-100 transition-colors"
+                                />
+                              </form>
+                              <a href={task.url} target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-900 truncate hover:underline">{task.title}</p>
+                                <p class="text-xs text-gray-400 truncate">
+                                  {[task.project, task.status].filter(Boolean).join(" · ")}
+                                </p>
+                              </a>
+                              {task.deliverable && (
+                                <a
+                                  href={task.deliverable}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  class="shrink-0 text-xs text-gray-400 hover:text-gray-900"
+                                  title="산출물 열기"
+                                >
+                                  산출물 ↗
+                                </a>
+                              )}
+                              <DueBadge today={today} date={task.due} />
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
 
               <Card title="GPA by semester" href={LINKS.gpa}>
                 <div class="flex items-end gap-2 sm:gap-3 h-44">
