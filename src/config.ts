@@ -134,7 +134,7 @@ export const siteConfig: SiteConfig = {
       highlight: "Hidden-set objective −49% to −99.6% · 100% feasible · 36/40 training instances improved, 0 regressions",
       context: "Optimization Grand Challenge 2026 · Team SANDLE",
       period: "Jun – Jul 2026",
-      team: "Team of 3",
+      team: "Team of 2",
       role: "Solver design & implementation lead",
       slug: "shipyard-block-scheduling",
       link: "https://github.com/glaubeleo-ruth/OGC_2026",
