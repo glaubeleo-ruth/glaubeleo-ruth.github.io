@@ -1,5 +1,6 @@
 ---
-import Base from "../../layouts/Base.astro";
+import Site from "../../layouts/Site.astro";
+import Icon from "../../components/Icon.astro";
 import { siteConfig, type Project } from "../../config";
 
 // One static page per config project that has a `detail` block.
@@ -18,154 +19,232 @@ interface Props {
 
 const { project, next } = Astro.props;
 const d = project.detail!;
-const accent = siteConfig.accentColor;
 const meta = [
   ["Period", project.period],
   ["Team", project.team],
   ["Role", project.role],
 ].filter(([, v]) => v) as [string, string][];
+const bullet =
+  "relative pl-5 before:absolute before:left-0 before:top-[0.7em] before:h-1.5 before:w-1.5 before:rounded-full before:bg-accent";
 ---
 
-<Base title={`${project.name} - ${siteConfig.name}`} description={project.description}>
-  <main class="max-w-4xl mx-auto px-6 sm:px-8 py-12 sm:py-16 space-y-12">
-    <a href="/#projects" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-      All projects
-    </a>
+<Site title={`${project.name} - ${siteConfig.name}`} description={project.description}>
+  <article>
+    <!-- Hero -->
+    <header class="relative isolate overflow-hidden">
+      <div class="shell absolute inset-x-0 top-0 bottom-0 -z-10" aria-hidden="true">
+        <div class="relative h-full"><div class="column-guides"></div></div>
+      </div>
+      <div class="shell pt-10 md:pt-14 pb-16 md:pb-24">
+        <a href="/#projects" class="inline-flex items-center gap-2 font-mono text-sm text-fg-2 hover:text-fg transition-colors">
+          <Icon name="arrow-left" class="w-4 h-4" />
+          All projects
+        </a>
 
-    <header class="space-y-5">
-      {project.context && <p class="text-sm font-mono" style={{ color: accent }}>{project.context}</p>}
-      <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">{project.name}</h1>
-      <div class="w-[75px] h-[5px] rounded-full" style={`background-color: ${accent}`} />
-      <dl class="flex flex-wrap gap-x-10 gap-y-3 pt-1">
-        {meta.map(([k, v]) => (
-          <div>
-            <dt class="text-xs uppercase tracking-wider text-gray-500">{k}</dt>
-            <dd class="text-base font-semibold text-gray-900">{v}</dd>
-          </div>
-        ))}
-      </dl>
-      <div class="flex flex-wrap items-center gap-2 pt-1">
-        {project.skills.map((skill) => (
-          <span class="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm font-medium">{skill}</span>
-        ))}
-        {project.link && (
-          <a
-            href={project.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
-          >
-            View on GitHub
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
-            </svg>
-          </a>
-        )}
+        {project.context && <p class="eyebrow mt-14 md:mt-20">{project.context}</p>}
+        <h1
+          class="mt-4 max-w-5xl text-[clamp(2.5rem,7vw,5.5rem)] font-bold leading-[1.02] tracking-[-0.04em] text-fg text-balance"
+        >
+          {project.name}
+        </h1>
+
+        {
+          meta.length > 0 && (
+            <dl class="mt-10 md:mt-14 grid grid-cols-2 sm:grid-cols-3 border-t border-line">
+              {meta.map(([k, v]) => (
+                <div class="py-4 sm:py-5 pr-4 sm:pr-6 max-sm:border-b max-sm:border-line max-sm:odd:last:col-span-2 sm:not-first:pl-6 sm:not-first:border-l sm:border-line">
+                  <dt class="font-mono text-xs uppercase tracking-wider text-fg-3">{k}</dt>
+                  <dd class="mt-1.5 text-lg font-semibold tracking-tight text-fg">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          )
+        }
+
+        <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-5">
+          <ul class="flex flex-wrap gap-1.5" aria-label="Skills">
+            {project.skills.map((skill) => <li class="chip chip-mono">{skill}</li>)}
+          </ul>
+          {
+            project.link && (
+              <a href={project.link} target="_blank" rel="noopener noreferrer" class="pill pill-solid sm:ml-auto self-start shrink-0">
+                <Icon name="github" class="w-[18px] h-[18px]" />
+                View on GitHub
+                <Icon name="arrow-up-right" class="w-4 h-4" />
+              </a>
+            )
+          }
+        </div>
       </div>
     </header>
 
-    <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {d.metrics.map((m) => (
-        <div class={`rounded-2xl p-5 ${m.highlight ? "bg-blue-50" : "bg-gray-50"}`}>
-          <div class="text-2xl sm:text-3xl font-bold" style={m.highlight ? { color: accent } : {}}>{m.value}</div>
-          <div class="text-sm text-gray-600 mt-1 leading-snug">{m.label}</div>
-        </div>
-      ))}
-    </section>
-
-    <section class="grid grid-cols-1 md:grid-cols-5 gap-8">
-      <div class="md:col-span-3 space-y-6">
-        <div>
-          <h2 class="text-xl font-bold text-gray-900 mb-2">The problem</h2>
-          <p class="text-gray-600 leading-relaxed">{d.problem}</p>
-        </div>
-        {d.approach && (
-          <div>
-            <h2 class="text-xl font-bold text-gray-900 mb-2">Approach</h2>
-            <p class="text-gray-600 leading-relaxed">{d.approach}</p>
-          </div>
-        )}
-      </div>
-      <div class="md:col-span-2 rounded-r-2xl bg-gray-50 p-5 border-l-4" style={`border-color: ${accent}`}>
-        <h2 class="text-xl font-bold text-gray-900 mb-3">What I did</h2>
-        <ul class="space-y-2">
-          {d.contributions.map((c) => (
-            <li class="flex gap-2 text-gray-700 leading-snug">
-              <span class="mt-2 w-1.5 h-1.5 rounded-full shrink-0" style={`background-color: ${accent}`} />
-              <span>{c}</span>
-            </li>
-          ))}
+    <!-- Metrics bento -->
+    <section class="bg-bg-2 py-16 md:py-24" aria-label="Key results">
+      <div class="shell">
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+          {
+            d.metrics.map((m) => (
+              <li class="tile bg-tile-2 p-7 md:p-9 flex flex-col justify-between min-h-44" data-reveal>
+                <p
+                  class={`text-[clamp(2rem,4.5vw,3.25rem)] font-bold leading-none tracking-[-0.035em] ${
+                    m.highlight ? "text-accent" : "text-fg"
+                  }`}
+                >
+                  {m.value}
+                </p>
+                <p class="mt-6 text-base leading-snug text-fg-2">{m.label}</p>
+              </li>
+            ))
+          }
         </ul>
       </div>
     </section>
 
-    {d.sections.map((s) => (
-      <section class="space-y-4">
-        <h2 class="text-xl sm:text-2xl font-bold text-gray-900">{s.title}</h2>
-        {s.body && <p class="text-gray-600 leading-relaxed">{s.body}</p>}
-        {s.cards && (
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {s.cards.map((c) => (
-              <div class="rounded-2xl border border-gray-200 p-5">
-                <h3 class="font-bold text-gray-900">{c.title}</h3>
-                <p class="text-sm text-gray-600 mt-2 leading-relaxed">{c.body}</p>
-                {c.note && <p class="text-xs font-semibold mt-3" style={{ color: accent }}>✕ {c.note}</p>}
+    <!-- Problem / approach / contributions -->
+    <section class="py-20 md:py-32">
+      <div class="shell grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+        <div class="lg:col-span-7 space-y-14">
+          <div data-reveal>
+            <h2 class="eyebrow">The problem</h2>
+            <p class="mt-4 text-xl md:text-2xl leading-[1.45] font-medium tracking-[-0.01em] text-fg">{d.problem}</p>
+          </div>
+          {
+            d.approach && (
+              <div data-reveal>
+                <h2 class="eyebrow">Approach</h2>
+                <p class="mt-4 text-lg md:text-xl leading-[1.55] text-fg-2">{d.approach}</p>
               </div>
-            ))}
+            )
+          }
+        </div>
+        <aside class="lg:col-span-5" data-reveal>
+          <div class="tile p-7 md:p-9 lg:sticky lg:top-20">
+            <h2 class="text-2xl font-semibold tracking-tight text-fg">What I did</h2>
+            <ul class="mt-6 space-y-4">
+              {d.contributions.map((c) => <li class={`${bullet} text-base leading-relaxed text-fg-2`}>{c}</li>)}
+            </ul>
           </div>
-        )}
-        {s.bullets && (
-          <ul class="space-y-3">
-            {s.bullets.map((b) => (
-              <li class="flex gap-2 text-gray-600 leading-relaxed">
-                <span class="mt-2.5 w-1.5 h-1.5 rounded-full shrink-0" style={`background-color: ${accent}`} />
-                <span>{b}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-        {s.table && (
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-              <thead>
-                <tr class="border-b-2 border-gray-900">
-                  {s.table.headers.map((h) => <th class="py-2 pr-4 text-xs uppercase tracking-wider text-gray-500">{h}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {s.table.rows.map((r) => (
-                  <tr class="border-b border-gray-200">
-                    {r.map((c, i) => <td class={`py-3 pr-4 align-top ${i === 0 ? "font-semibold text-gray-900" : "text-gray-600"}`}>{c}</td>)}
-                  </tr>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Detail sections -->
+    {
+      d.sections.map((s, si) => (
+        <section class={`py-20 md:py-28 ${si % 2 === 0 ? "bg-bg-2" : ""}`}>
+          <div class="shell">
+            <h2
+              class="max-w-4xl text-[clamp(2rem,4.5vw,3.25rem)] font-bold leading-[1.08] tracking-[-0.03em] text-fg text-balance"
+              data-reveal
+            >
+              {s.title}
+            </h2>
+            {s.body && (
+              <p class="mt-6 max-w-3xl text-lg md:text-xl leading-[1.55] text-fg-2" data-reveal>
+                {s.body}
+              </p>
+            )}
+            {s.cards && (
+              <ul class="mt-10 md:mt-14 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+                {s.cards.map((c) => (
+                  <li class={`tile ${si % 2 === 0 ? "bg-tile-2" : ""} p-7 md:p-8 flex flex-col`} data-reveal>
+                    <h3 class="text-xl font-semibold tracking-tight text-fg">{c.title}</h3>
+                    <p class="mt-3 text-base leading-relaxed text-fg-2">{c.body}</p>
+                    {c.note && <p class="mt-auto pt-6 font-mono text-xs font-medium text-accent">✕ {c.note}</p>}
+                  </li>
                 ))}
-              </tbody>
-            </table>
+              </ul>
+            )}
+            {s.bullets && (
+              <ul class="mt-8 max-w-3xl space-y-4">
+                {s.bullets.map((b) => (
+                  <li class={`${bullet} text-lg leading-relaxed text-fg-2`} data-reveal>
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {s.table && (
+              <div class="mt-10 overflow-x-auto" data-reveal>
+                <table class="w-full text-left text-[0.9375rem]">
+                  <thead>
+                    <tr class="border-b border-fg">
+                      {s.table.headers.map((h) => (
+                        <th scope="col" class="py-3 pr-6 font-mono text-xs font-medium uppercase tracking-wider text-fg-3">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {s.table.rows.map((r) => (
+                      <tr class="border-b border-line">
+                        {r.map((c, i) => (
+                          <td class={`py-4 pr-6 align-top ${i === 0 ? "font-semibold text-fg" : "text-fg-2"}`}>{c}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {s.figure && (
+              <figure class="mt-10 md:mt-14" data-reveal>
+                {/* Charts are drawn on white, so they sit on a white plate in both themes. */}
+                <a
+                  href={s.figure.src}
+                  target="_blank"
+                  rel="noopener"
+                  class="block overflow-hidden rounded-[var(--radius-tile)] bg-white p-2 sm:p-4 ring-1 ring-line"
+                  title="Open full-size image"
+                >
+                  <img src={s.figure.src} alt={s.figure.alt} loading="lazy" decoding="async" class="w-full h-auto" />
+                </a>
+                {s.figure.caption && (
+                  <figcaption class="mt-4 max-w-3xl text-sm leading-relaxed text-fg-3">{s.figure.caption}</figcaption>
+                )}
+              </figure>
+            )}
           </div>
-        )}
-        {s.figure && (
-          <figure>
-            <img src={s.figure.src} alt={s.figure.alt} loading="lazy" class="w-full rounded-2xl border border-gray-200" />
-            {s.figure.caption && <figcaption class="text-sm text-gray-500 mt-2 leading-relaxed">{s.figure.caption}</figcaption>}
-          </figure>
-        )}
-      </section>
-    ))}
+        </section>
+      ))
+    }
 
-    {d.lesson && (
-      <section class="rounded-r-2xl bg-orange-50 p-5 sm:p-6 border-l-4 border-orange-500">
-        <h2 class="text-lg font-bold text-gray-900 mb-2">What I learned</h2>
-        <p class="text-gray-700 leading-relaxed">{d.lesson}</p>
-      </section>
-    )}
+    <!-- Lesson -->
+    {
+      d.lesson && (
+        <section class="py-20 md:py-28">
+          <div class="shell">
+            <div class="tile p-8 sm:p-10 md:p-14" data-reveal>
+              <h2 class="eyebrow">What I learned</h2>
+              <p class="mt-5 max-w-4xl text-[clamp(1.375rem,2.6vw,2rem)] leading-[1.35] font-semibold tracking-[-0.015em] text-fg">
+                {d.lesson}
+              </p>
+            </div>
+          </div>
+        </section>
+      )
+    }
 
-    <nav class="flex justify-between items-center pt-8 border-t border-gray-200 text-sm">
-      <a href="/#projects" class="text-gray-500 hover:text-gray-900">← All projects</a>
-      {next.slug !== project.slug && (
-        <a href={`/work/${next.slug}`} class="font-semibold hover:underline" style={{ color: accent }}>Next: {next.name} →</a>
-      )}
+    <!-- Next -->
+    <nav class="border-t border-line" aria-label="Project navigation">
+      <div class="shell py-12 md:py-16 flex flex-col sm:flex-row sm:items-end justify-between gap-8">
+        <a href="/#projects" class="inline-flex items-center gap-2 font-mono text-sm text-fg-2 hover:text-fg transition-colors">
+          <Icon name="arrow-left" class="w-4 h-4" />
+          All projects
+        </a>
+        {
+          next.slug !== project.slug && (
+            <a href={`/work/${next.slug}`} class="group sm:text-right max-w-xl">
+              <span class="font-mono text-sm text-fg-3">Next</span>
+              <span class="mt-2 flex sm:justify-end items-center gap-3 text-2xl md:text-3xl font-semibold tracking-tight text-fg group-hover:text-accent transition-colors">
+                {next.name}
+                <Icon name="arrow-right" class="w-6 h-6 shrink-0 transition-transform group-hover:translate-x-1" />
+              </span>
+            </a>
+          )
+        }
+      </div>
     </nav>
-  </main>
-</Base>
+  </article>
+</Site>

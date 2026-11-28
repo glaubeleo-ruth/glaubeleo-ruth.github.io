@@ -25,7 +25,7 @@ npm run preview   # Preview production build
 
 The project follows a component-based architecture with all customization centralized in `src/config.ts`:
 
-- **Components** (`src/components/`): Individual Astro components for each section (Hero, About, Projects, Experience, Education, Header, Footer)
+- **Components** (`src/components/`): Individual Astro components for each section (Hero, About, Principles, ResearchInterests, Projects, Experience, Education), wrapped by `Section.astro`; Header/Footer are rendered by `Site.astro`
 - **Main Layout** (`src/pages/index.astro`): Single-page layout that imports all components
 - **Configuration** (`src/config.ts`): Single source of truth for all content and customization
 
@@ -41,7 +41,9 @@ The project follows a component-based architecture with all customization centra
 - The site uses Tailwind CSS v4 with the Vite plugin configuration
 - No linting or testing framework is currently configured
 - All components are in `.astro` format (not React/Vue/etc)
-- The project uses IBM Plex Mono font loaded from Google Fonts
+- Public pages (home, `/work/<slug>`, `/projects/<slug>`) use `src/layouts/Site.astro` + `src/styles/site.css`: system SF-style sans for text, IBM Plex Mono (400/500, Google Fonts) for labels and meta, light/dark themes via `data-theme` on `<html>` (saved toggle, else OS setting), and `[data-reveal]` scroll reveal that is skipped under `prefers-reduced-motion`
+- Colors are CSS variables exposed as Tailwind colors (`bg`, `bg-2`, `tile`, `tile-2`, `fg`, `fg-2`, `fg-3`, `line`, `accent`); use those instead of `gray-*` so both themes work
+- The dashboard keeps `src/layouts/Base.astro` + `global.css` (IBM Plex Mono, light only)
 - Social links in the config are all optional and will conditionally render
 
 ## Private dashboard
@@ -57,8 +59,8 @@ The project follows a component-based architecture with all customization centra
 When modifying components:
 1. Components read directly from the imported `siteConfig` object
 2. Use Tailwind utility classes for styling
-3. Maintain the existing monospace font aesthetic
-4. Use Tabler Icons for consistency with existing icons
+3. Use the theme color tokens above, and check pages in both light and dark mode
+4. Use Tabler-style stroke icons via `src/components/Icon.astro`
 
 ## Configuration Structure
 

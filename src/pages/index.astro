@@ -1,6 +1,5 @@
 ---
-import Base from "../layouts/Base.astro";
-import Header from "../components/Header.astro";
+import Site from "../layouts/Site.astro";
 import Hero from "../components/Hero.astro";
 import About from "../components/About.astro";
 import Principles from "../components/Principles.astro";
@@ -8,19 +7,14 @@ import ResearchInterests from "../components/ResearchInterests.astro";
 import Projects from "../components/Projects.astro";
 import Experience from "../components/Experience.astro";
 import Education from "../components/Education.astro";
-import Footer from "../components/Footer.astro";
 ---
 
-<Base>
-  <Header />
-  <section>
-    <Hero />
-    <About />
-    <Principles />
-    <ResearchInterests />
-    <Projects />
-    <Experience />
-    <Education />
-  </section>
-  <Footer />
-</Base>
+<Site>
+  <Hero />
+  <About />
+  <Principles />
+  <ResearchInterests />
+  <Projects />
+  <Experience />
+  <Education />
+</Site>

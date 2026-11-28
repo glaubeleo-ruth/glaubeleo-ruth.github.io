@@ -1,78 +1,133 @@
 ---
 import { siteConfig } from "../config";
+import Icon from "./Icon.astro";
 
 const hasProjects = siteConfig.projects && siteConfig.projects.length > 0;
 const hasExperience = siteConfig.experience && siteConfig.experience.length > 0;
 const hasEducation = siteConfig.education && siteConfig.education.length > 0;
+
+// Absolute "/#…" links so the nav also works from /work/<slug> pages.
+const links = [
+  { href: "/#about", label: "About" },
+  hasProjects && { href: "/#projects", label: "Projects" },
+  hasExperience && { href: "/#experience", label: "Experience" },
+  hasEducation && { href: "/#education", label: "Education" },
+].filter(Boolean) as { href: string; label: string }[];
 ---
 
 <header
   id="header"
-  class="fixed top-0 left-0 right-0 z-50 hidden md:block transition-all duration-300"
+  class="sticky top-0 z-50 border-b border-line backdrop-blur-xl backdrop-saturate-150"
+  style="background: var(--nav-bg)"
 >
-  <nav class="max-w-7xl mx-auto px-8 py-4">
-    <ul class="flex items-center gap-8 justify-center">
-      <li>
-        <a
-          href="#about"
-          class="text-gray-700 hover:text-black transition-colors font-medium"
-        >
-          About
-        </a>
-      </li>
+  <nav class="shell h-13 flex items-center justify-between gap-6" aria-label="Main">
+    <a href="/" class="text-[0.9375rem] font-semibold tracking-tight text-fg hover:opacity-70 transition-opacity">
+      {siteConfig.name}
+    </a>
+
+    <div class="flex items-center gap-1 sm:gap-2">
+      <ul class="hidden md:flex items-center gap-7 mr-4">
+        {
+          links.map((l) => (
+            <li>
+              <a href={l.href} class="text-[0.8125rem] text-fg-2 hover:text-fg transition-colors">
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <button
+        type="button"
+        id="theme-toggle"
+        class="w-10 h-10 grid place-items-center rounded-full text-fg-2 hover:text-fg hover:bg-tile transition-colors"
+        aria-label="Switch to dark mode"
+        title="Toggle light or dark mode"
+      >
+        <span class="theme-icon-moon"><Icon name="moon" class="w-[18px] h-[18px]" /></span>
+        <span class="theme-icon-sun"><Icon name="sun" class="w-[18px] h-[18px]" /></span>
+      </button>
+
+      <button
+        type="button"
+        id="menu-toggle"
+        class="md:hidden w-10 h-10 grid place-items-center rounded-full text-fg-2 hover:text-fg hover:bg-tile transition-colors"
+        aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <span class="menu-icon-open"><Icon name="menu" class="w-5 h-5" /></span>
+        <span class="menu-icon-close hidden"><Icon name="close" class="w-5 h-5" /></span>
+      </button>
+    </div>
+  </nav>
+
+  <div id="mobile-menu" class="md:hidden hidden border-t border-line">
+    <ul class="shell py-3">
       {
-        hasProjects && (
+        links.map((l) => (
           <li>
-            <a
-              href="#projects"
-              class="text-gray-700 hover:text-black transition-colors font-medium"
-            >
-              Projects
+            <a href={l.href} class="block py-3 text-2xl font-semibold tracking-tight text-fg">
+              {l.label}
             </a>
           </li>
-        )
-      }
-      {
-        hasExperience && (
-          <li>
-            <a
-              href="#experience"
-              class="text-gray-700 hover:text-black transition-colors font-medium"
-            >
-              Experience
-            </a>
-          </li>
-        )
-      }
-      {
-        hasEducation && (
-          <li>
-            <a
-              href="#education"
-              class="text-gray-700 hover:text-black transition-colors font-medium"
-            >
-              Education
-            </a>
-          </li>
-        )
+        ))
       }
     </ul>
-  </nav>
+  </div>
 </header>
 
-<script>
-  window.addEventListener("scroll", () => {
-    const header = document.getElementById("header");
-    if (window.scrollY > 100) {
-      header?.classList.add("bg-white/80", "backdrop-blur-sm");
-    } else {
-      header?.classList.remove("bg-white/80", "backdrop-blur-sm");
-    }
-  });
-</script>
-
 <style>
-  html {
-    scroll-behavior: smooth;
+  .theme-icon-sun {
+    display: none;
+  }
+  :global([data-theme="dark"]) .theme-icon-sun {
+    display: block;
+  }
+  :global([data-theme="dark"]) .theme-icon-moon {
+    display: none;
   }
 </style>
+
+<script>
+  const root = document.documentElement;
+  const toggle = document.getElementById("theme-toggle")!;
+  const label = () =>
+    toggle.setAttribute("aria-label", root.dataset.theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+  label();
+  toggle.addEventListener("click", () => {
+    const next = root.dataset.theme === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem("theme", next);
+    } catch {}
+    label();
+  });
+  // Follow the OS setting until the visitor picks a theme themselves.
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    let saved = null;
+    try {
+      saved = localStorage.getItem("theme");
+    } catch {}
+    if (!saved) {
+      root.dataset.theme = e.matches ? "dark" : "light";
+      label();
+    }
+  });
+
+  const menuBtn = document.getElementById("menu-toggle")!;
+  const menu = document.getElementById("mobile-menu")!;
+  const setMenu = (open: boolean) => {
+    menu.classList.toggle("hidden", !open);
+    menuBtn.setAttribute("aria-expanded", String(open));
+    menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    menuBtn.querySelector(".menu-icon-open")!.classList.toggle("hidden", open);
+    menuBtn.querySelector(".menu-icon-close")!.classList.toggle("hidden", !open);
+  };
+  menuBtn.addEventListener("click", () => setMenu(menuBtn.getAttribute("aria-expanded") !== "true"));
+  menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setMenu(false)));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setMenu(false);
+  });
+</script>
