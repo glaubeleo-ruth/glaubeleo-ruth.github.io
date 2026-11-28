@@ -88,7 +88,7 @@ export const siteConfig: SiteConfig = {
     github: "https://github.com/glaubeleo-ruth",
   },
   aboutMe:
-    "I solve operational problems with hard constraints end to end, from the data pipeline and prediction model to the optimizer. I always compare results against a baseline and report only numbers that passed verification. I've built a shipyard scheduling solver with logic-based Benders decomposition, a rolling-horizon MILP dispatcher for an electric shuttle fleet, and an evaluation setup for fine-tuning a vision-language model. I'm an Industrial Engineering and AI Convergence student at Soongsil University (graduating Aug 2027) and an undergraduate researcher at Seoul National University.",
+    "I solve operational problems with hard constraints end to end, from the data pipeline and prediction model to the optimizer. I always compare results against a baseline and report only numbers that passed verification. I've built a shipyard scheduling solver with logic-based Benders decomposition, a rolling-horizon MILP dispatcher for an electric shuttle fleet, and an evaluation setup for fine-tuning a vision-language model. I'm an Industrial Engineering and AI Convergence student at Soongsil University (graduating Feb 2028) and an undergraduate researcher at Seoul National University.",
   principles: [
     {
       title: "Set the baseline first",
@@ -434,7 +434,7 @@ export const siteConfig: SiteConfig = {
       school: "Soongsil University",
       degree: "B.Eng. Industrial Engineering",
       minor: "Double Major in AI Convergence",
-      dateRange: "Mar 2022 - Aug 2027 (Expected)",
+      dateRange: "Mar 2022 - Feb 2028 (Expected)",
       achievements: [
         "Relevant coursework: Operations Research, Machine Learning, Multimodal Deep Learning, Advanced AI Mathematics, Simulation Modeling",
         "Probability & Statistics I·II, Linear Algebra, Data Structures, Algorithms, Computer Architecture, Operating Systems",
