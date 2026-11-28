@@ -1,5 +1,6 @@
 ---
-import Base from "../../layouts/Base.astro";
+import Site from "../../layouts/Site.astro";
+import Icon from "../../components/Icon.astro";
 import NotionBlocks from "../../components/notion/NotionBlocks.astro";
 import { siteConfig } from "../../config";
 import { getBlocks, getProjects, type NotionProject } from "../../lib/notion";
@@ -25,48 +26,45 @@ const hasMermaid = blocks.some(function containsMermaid(b): boolean {
 });
 ---
 
-<Base title={`${project.name} - ${siteConfig.name}`} description={project.description}>
-  <main class="max-w-4xl mx-auto px-6 sm:px-8 py-12 sm:py-16 space-y-10">
-    <a href="/#projects" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-      All projects
-    </a>
-
-    <header class="space-y-5">
-      {(project.context || project.period) && (
-        <p class="text-sm font-mono" style={{ color: siteConfig.accentColor }}>
-          {[project.context, project.period].filter(Boolean).join(" · ")}
-        </p>
-      )}
-      <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">{project.name}</h1>
-      <div class="w-[75px] h-[5px] rounded-full" style={`background-color: ${siteConfig.accentColor}`} />
-      <p class="text-lg text-gray-600 leading-relaxed">{project.description}</p>
-      <div class="flex flex-wrap items-center gap-2">
-        {project.skills.map((skill) => (
-          <span class="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm font-medium">{skill}</span>
-        ))}
-        {project.link && (
-          <a
-            href={project.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
-          >
-            View on GitHub
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
-            </svg>
-          </a>
+<Site title={`${project.name} - ${siteConfig.name}`} description={project.description}>
+  <article>
+    <header class="relative isolate overflow-hidden">
+      <div class="shell absolute inset-x-0 top-0 bottom-0 -z-10" aria-hidden="true">
+        <div class="relative h-full"><div class="column-guides"></div></div>
+      </div>
+      <div class="shell pt-10 md:pt-14 pb-14 md:pb-20">
+        <a href="/#projects" class="inline-flex items-center gap-2 font-mono text-sm text-fg-2 hover:text-fg transition-colors">
+          <Icon name="arrow-left" class="w-4 h-4" />
+          All projects
+        </a>
+        {(project.context || project.period) && (
+          <p class="eyebrow mt-14 md:mt-20">{[project.context, project.period].filter(Boolean).join(" · ")}</p>
         )}
+        <h1 class="mt-4 max-w-5xl text-[clamp(2.5rem,7vw,5.5rem)] font-bold leading-[1.02] tracking-[-0.04em] text-fg text-balance">
+          {project.name}
+        </h1>
+        <p class="mt-8 max-w-3xl text-xl md:text-2xl leading-[1.45] font-medium tracking-[-0.01em] text-fg-2">{project.description}</p>
+        <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-5">
+          <ul class="flex flex-wrap gap-1.5" aria-label="Skills">
+            {project.skills.map((skill) => <li class="chip chip-mono">{skill}</li>)}
+          </ul>
+          {project.link && (
+            <a href={project.link} target="_blank" rel="noopener noreferrer" class="pill pill-solid sm:ml-auto self-start shrink-0">
+              <Icon name="github" class="w-[18px] h-[18px]" />
+              View on GitHub
+              <Icon name="arrow-up-right" class="w-4 h-4" />
+            </a>
+          )}
+        </div>
       </div>
     </header>
 
-    <article class="space-y-6">
-      <NotionBlocks blocks={blocks} />
-    </article>
-  </main>
+    <div class="border-t border-line">
+      <div class="shell max-w-4xl! py-16 md:py-24 space-y-6 notion-prose text-lg">
+        <NotionBlocks blocks={blocks} />
+      </div>
+    </div>
+  </article>
 
   {hasMermaid && (
     <script type="module" is:inline>
@@ -74,4 +72,4 @@ const hasMermaid = blocks.some(function containsMermaid(b): boolean {
       mermaid.initialize({ startOnLoad: true, theme: "neutral" });
     </script>
   )}
-</Base>
+</Site>

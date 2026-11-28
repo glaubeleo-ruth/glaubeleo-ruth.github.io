@@ -1,0 +1,273 @@
+@import "tailwindcss";
+
+/*
+ * Public site design system (home, /work, /projects).
+ * The private dashboard keeps layouts/Base.astro + global.css and is unaffected.
+ *
+ * Theme: <html data-theme="light|dark">, set before first paint by the inline script in
+ * layouts/Site.astro (saved choice, else the OS preference). Colors are CSS variables, so
+ * Tailwind utilities like `bg-tile` or `text-fg-2` switch with the theme automatically.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue",
+    "Segoe UI", Roboto, "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-tile: var(--tile);
+  --color-tile-2: var(--tile-2);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+}
+
+:root {
+  /* --accent-base is set inline from siteConfig.accentColor */
+  --bg: #ffffff;
+  --bg-2: #f5f5f7;
+  --tile: #f5f5f7;
+  --tile-2: #ffffff;
+  --fg: #1d1d1f;
+  --fg-2: #424245;
+  --fg-3: #6e6e73;
+  --line: rgb(0 0 0 / 0.1);
+  --accent: var(--accent-base, #1d4ed8);
+  --accent-soft: color-mix(in oklab, var(--accent) 9%, transparent);
+  --nav-bg: rgb(255 255 255 / 0.72);
+  --radius-tile: 22px;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #000000;
+  --bg-2: #0b0b0d;
+  --tile: #121217;
+  --tile-2: #1b1b22;
+  --fg: #f5f5f7;
+  --fg-2: #c7c7cc;
+  --fg-3: #98989f;
+  --line: rgb(255 255 255 / 0.12);
+  /* Lift the config accent so it keeps AA contrast on black */
+  --accent: color-mix(in oklab, var(--accent-base, #1d4ed8) 55%, white);
+  --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
+  --nav-bg: rgb(22 22 23 / 0.72);
+  color-scheme: dark;
+}
+
+/* No-JS visitors: follow the OS theme (the head script normally sets data-theme). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #000000;
+    --bg-2: #0b0b0d;
+    --tile: #121217;
+    --tile-2: #1b1b22;
+    --fg: #f5f5f7;
+    --fg-2: #c7c7cc;
+    --fg-3: #98989f;
+    --line: rgb(255 255 255 / 0.12);
+    /* Lift the config accent so it keeps AA contrast on black */
+    --accent: color-mix(in oklab, var(--accent-base, #1d4ed8) 55%, white);
+    --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
+    --nav-bg: rgb(22 22 23 / 0.72);
+    color-scheme: dark;
+  }
+}
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-padding-top: 4.5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  background: var(--bg);
+  min-height: 100svh;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@layer components {
+  /* Page width used across sections */
+  .shell {
+    width: 100%;
+    max-width: 1120px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 640px) {
+    .shell {
+      padding-inline: 2rem;
+    }
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+  }
+
+  /* Big Apple-style section headline */
+  .headline {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.04;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    color: var(--fg);
+    text-wrap: balance;
+  }
+
+  .tile {
+    background: var(--tile);
+    border-radius: var(--radius-tile);
+  }
+
+  /* Outline pill buttons, after azumbrunnen.me's "→ say hi" */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--fg);
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease;
+  }
+  @media (min-width: 640px) {
+    .pill {
+      gap: 0.5rem;
+      padding-inline: 1.25rem;
+      font-size: 0.9375rem;
+    }
+  }
+  .pill:hover {
+    border-color: var(--fg);
+  }
+  .pill-solid {
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg);
+  }
+  .pill-solid:hover {
+    background: color-mix(in oklab, var(--fg) 85%, var(--bg));
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--fg-2);
+    border: 1px solid var(--line);
+  }
+  .chip-mono {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  /* Faint vertical column guides, after azumbrunnen.me's hero */
+  .column-guides {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(to right, var(--line) 1px, transparent 1px);
+    background-size: 25% 100%;
+    border-right: 1px solid var(--line);
+    mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+    opacity: 0.7;
+  }
+}
+
+/*
+ * Scroll reveal. Content is hidden only when JS is running and the user has not asked for
+ * reduced motion (the `reveal` class is added by the head script), so it never disappears
+ * for no-JS visitors or screen readers.
+ */
+.reveal [data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * Notion-rendered project pages (/projects/<slug>). NotionBlocks.astro is shared with the
+ * dashboard, so instead of editing it we remap its gray utilities to theme tokens here.
+ */
+.notion-prose :where(.text-gray-900) {
+  color: var(--fg);
+}
+.notion-prose :where(.text-gray-700, .text-gray-600) {
+  color: var(--fg-2);
+}
+.notion-prose :where(.text-gray-500) {
+  color: var(--fg-3);
+}
+.notion-prose :where(.border-gray-200, .border-gray-300, .border-gray-100) {
+  border-color: var(--line);
+}
+.notion-prose :where(.divide-gray-100) > :not(:last-child) {
+  border-color: var(--line);
+}
+.notion-prose :where(.bg-gray-50) {
+  background: var(--tile);
+}
+.notion-prose :where(.rounded-xl) {
+  border-radius: 18px;
+}
+[data-theme="dark"] .notion-prose :where([class*="bg-"][class*="-50"]:not(.bg-gray-50)) {
+  background: var(--tile);
+  border-color: var(--line);
+}
+[data-theme="dark"] .notion-prose :where(img) {
+  background: #fff;
+}

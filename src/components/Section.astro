@@ -1,0 +1,18 @@
+---
+// Shared section frame: big Apple-style headline, generous spacing, optional tinted band.
+interface Props {
+  id: string;
+  title: string;
+  tinted?: boolean;
+}
+const { id, title, tinted = false } = Astro.props;
+---
+
+<section id={id} class={`py-24 md:py-36 ${tinted ? "bg-bg-2" : ""}`} aria-labelledby={`${id}-title`}>
+  <div class="shell">
+    <h2 id={`${id}-title`} class="headline" data-reveal>{title}</h2>
+    <div class="mt-12 md:mt-16">
+      <slot />
+    </div>
+  </div>
+</section>

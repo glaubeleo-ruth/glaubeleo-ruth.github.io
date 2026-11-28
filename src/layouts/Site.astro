@@ -1,0 +1,89 @@
+---
+// Layout for the public pages (home, /work/<slug>, /projects/<slug>).
+// The private dashboard keeps layouts/Base.astro.
+import { siteConfig } from "../config";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/site.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = `${siteConfig.name} - ${siteConfig.title}`,
+  description = siteConfig.description,
+} = Astro.props;
+---
+
+<html lang="en" style={`--accent-base: ${siteConfig.accentColor}`}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <title>{title}</title>
+    <script is:inline>
+      // Runs before first paint: apply the saved theme (or the OS one) and opt in to
+      // scroll-reveal only when motion is allowed.
+      (function () {
+        var d = document.documentElement;
+        var saved = null;
+        try { saved = localStorage.getItem("theme"); } catch (e) {}
+        var dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        d.dataset.theme = dark ? "dark" : "light";
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+          d.classList.add("reveal");
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-bg text-fg">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-full focus:bg-fg focus:text-bg"
+      >Skip to content</a
+    >
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      // Reveal-on-scroll for [data-reveal]; elements in the same parent stagger slightly.
+      const root = document.documentElement;
+      if (root.classList.contains("reveal")) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add("is-in");
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+        );
+        document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => {
+          const siblings = el.parentElement
+            ? Array.from(el.parentElement.children).filter((c) => c.hasAttribute("data-reveal"))
+            : [];
+          const i = siblings.indexOf(el);
+          if (i > 0) el.style.setProperty("--reveal-delay", `${Math.min(i, 4) * 70}ms`);
+          io.observe(el);
+        });
+      }
+    </script>
+  </body>
+</html>

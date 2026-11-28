@@ -1,21 +1,22 @@
 ---
 import { siteConfig } from "../config";
+import Section from "./Section.astro";
 ---
 
-<section id="principles" class="p-8 sm:p-12 md:p-16 lg:p-24">
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
-    <div class="lg:col-span-4">
-      <h2 class="text-3xl sm:text-4xl md:text-5xl xl:text-7xl font-bold text-gray-900">How I Work</h2>
-      <div class="w-[75px] h-[5px] mt-2 rounded-full" style={`background-color: ${siteConfig.accentColor}`} />
-    </div>
-    <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-      {siteConfig.principles.map((p, i) => (
-        <div class="pt-4 border-t-4" style={`border-color: ${siteConfig.accentColor}`}>
-          <span class="text-sm font-mono" style={{ color: siteConfig.accentColor }}>0{i + 1}</span>
-          <h3 class="text-lg sm:text-xl font-bold text-gray-900 mt-1">{p.title}</h3>
-          <p class="text-base text-gray-600 leading-relaxed mt-2">{p.body}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-</section>
+<Section id="principles" title="How I Work" tinted>
+  <ol class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+    {
+      siteConfig.principles.map((p, i) => (
+        <li class="tile bg-tile-2 p-7 md:p-8 flex flex-col" data-reveal>
+          <span class="font-mono text-sm text-accent" aria-hidden="true">
+            0{i + 1}
+          </span>
+          <h3 class="mt-10 md:mt-14 text-2xl md:text-[1.625rem] leading-tight font-semibold tracking-tight text-fg">
+            {p.title}
+          </h3>
+          <p class="mt-3 text-base leading-relaxed text-fg-2">{p.body}</p>
+        </li>
+      ))
+    }
+  </ol>
+</Section>
